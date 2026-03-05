@@ -82,9 +82,27 @@ changelog:
 
 release:
   github:
-    owner: netr0m
+    owner: mindmorass
     name: az-pim-cli
 
 source:
   enabled: true
   name_template: '{{ .ProjectName }}-{{ .Version }}-source'
+
+brews:
+  - name: az-pim-cli
+    repository:
+      owner: mindmorass
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/mindmorass/az-pim-cli"
+    description: "CLI utility for managing Azure PIM role assignments"
+    license: "MIT"
+    dependencies:
+      - name: go
+        type: build
+    install: |
+      system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
+    test: |
+      assert_match version.to_s, shell_output("#{bin}/az-pim-cli version")
