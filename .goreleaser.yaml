@@ -95,6 +95,7 @@ brews:
       owner: mindmorass
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    ids: [compressed]
     directory: Formula
     homepage: "https://github.com/mindmorass/az-pim-cli"
     description: "CLI utility for managing Azure PIM role assignments"
