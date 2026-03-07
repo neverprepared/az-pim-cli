@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.12.0](https://github.com/mindmorass/az-pim-cli/compare/v1.11.0...v1.12.0) (2026-03-07)
+
+
+### Continuous Integration
+
+* add build workflow for all target platforms ([4e79802](https://github.com/mindmorass/az-pim-cli/commit/4e79802069c79d3a830583a942216e8d17675de4))
+* disable Snyk jobs until SNYK_TOKEN is configured ([ebccfe0](https://github.com/mindmorass/az-pim-cli/commit/ebccfe0256d5c4c3d8fea534bd60380998da24a4))
+* use GITHUB_TOKEN for release-please instead of PAT ([11d0de9](https://github.com/mindmorass/az-pim-cli/commit/11d0de9df2e2f4dc461d19306630094388aa0970))
+
 ## [1.11.0](https://github.com/netr0m/az-pim-cli/compare/v1.10.0...v1.11.0) (2026-01-01)
 
 
