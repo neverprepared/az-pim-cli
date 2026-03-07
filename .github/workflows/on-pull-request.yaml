@@ -21,6 +21,7 @@ jobs:
 
   snyk:
     name: Scan dependencies
+    if: false # disabled until SNYK_TOKEN secret is configured
     uses: ./.github/workflows/snyk.yaml
     with:
       severity-treshold: low
