@@ -33,7 +33,6 @@ jobs:
   release-please:
     name: Create release-please PR
     uses: ./.github/workflows/release-please.yaml
-    secrets: inherit
     permissions:
       contents: write
       pull-requests: write
