@@ -7,6 +7,10 @@ permissions:
   contents: read
 
 jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yaml
+
   test:
     name: Run tests
     uses: ./.github/workflows/test.yaml

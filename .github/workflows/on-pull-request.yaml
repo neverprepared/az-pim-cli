@@ -11,6 +11,10 @@ jobs:
     name: Check code quality
     uses: ./.github/workflows/lint.yaml
 
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yaml
+
   test:
     name: Run tests
     uses: ./.github/workflows/test.yaml
