@@ -6,6 +6,24 @@
 `az-pim-cli` eases the process of listing and activating Azure PIM roles by allowing activation via the command line. Authentication is handled with the `azure.identity` library by utilizing the `AzureCLICredential` method.
 It currently supports ['azure resources'](#azure-resources), ['groups'](#groups), and ['entra roles'](#entra-roles)
 
+Commands at a glance:
+| Command | Description |
+|---|---|
+| `list resource` | List eligible Azure resource assignments |
+| `list group` | List eligible Entra group assignments |
+| `list role` | List eligible Entra role assignments |
+| `list active resource` | List currently active Azure resource assignments |
+| `list active group` | List currently active Entra group assignments |
+| `list active role` | List currently active Entra role assignments |
+| `activate resource` | Activate an eligible Azure resource assignment |
+| `activate group` | Activate an eligible Entra group assignment |
+| `activate role` | Activate an eligible Entra role assignment |
+| `deactivate resource` | Deactivate an active Azure resource assignment |
+| `deactivate group` | Deactivate an active Entra group assignment |
+| `deactivate role` | Deactivate an active Entra role assignment |
+| `token resource` | Retrieve an ARM API access token |
+| `token governance` | Retrieve an RBAC governance API access token (replaces manual browser method) |
+
 ## Install
 ### Install with `go install`
 ```bash
@@ -44,8 +62,10 @@ Usage:
 Available Commands:
   activate    Send a request to Azure PIM to activate a role assignment
   completion  Generate the autocompletion script for the specified shell
+  deactivate  Send a request to Azure PIM to deactivate a role assignment
   help        Help about any command
   list        Query Azure PIM for eligible role assignments
+  token       Retrieve an access token for use with Azure PIM APIs
   version     Display the version of az-pim-cli
 
 Flags:
@@ -53,6 +73,7 @@ Flags:
   -c, --config string   config file (default is $HOME/.az-pim-cli.yaml)
       --debug           Enable debug logging
   -h, --help            help for az-pim-cli
+  -j, --json            Emit output as JSON (logs are redirected to stderr)
 
 Use "az-pim-cli [command] --help" for more information about a command.
 
@@ -282,6 +303,9 @@ time=2024-11-20T08:08:20.129+01:00 level=INFO msg="Request completed" role=Owner
 
 # Activate a resource role and specify the start time and start date for the activation. Uses the local timezone.
 $ az-pim-cli activate resource --name S100-Example-Subscription --role Owner --start-date 31/12/2024 --start-time 09:30
+
+# Activate ALL eligible resource assignments at once (morning activation)
+$ az-pim-cli activate resource --all --reason "morning activation" --duration 480
 time=2024-11-20T08:08:08.534+01:00 level=INFO msg="Requesting activation" role=Owner scope=S100-Example-Subscription reason="" ticketNumber=T-1337 ticketSystem=Jira duration=480 startDateTime=2024-12-31T09:30:00+01:00
 time=2024-11-20T08:08:20.129+01:00 level=INFO msg="The role assignment request was successful" status=Provisioned
 time=2024-11-20T08:08:20.129+01:00 level=INFO msg="Request completed" role=Owner scope=S100-Example-Subscription status=Provisioned
@@ -342,21 +366,28 @@ export PIM_CLOUD=global
 ```
 
 ### Token for Entra ID Groups and Roles
-Due to limitations with authorization for Azure PIM, this software may only acquire a token authorized for listing and activating ['Azure resources' roles](https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/ActivationMenuBlade/~/azurerbac).
-In order to list or activate ['Entra groups'](https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/ActivationMenuBlade/~/aadgroup) and ['Entra roles'](https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/ActivationMenuBlade/~/aadmigratedroles), you must acquire a token from an authenticated browser session. This token will have a limited lifetime, which means you'll likely have to perform this step each time you wish to activate or list Entra groups.
+The `token governance` command retrieves the required access token automatically via `az` CLI:
 
-To acquire the token, do the following:
+```bash
+$ export PIM_TOKEN=$(az-pim-cli token governance)
+```
+
+You can then use this token with any `group` or `role` subcommand via `--token` or the `PIM_TOKEN` environment variable. The token has a limited lifetime, so you may need to refresh it periodically.
+
+> **Note:** If `token governance` fails, your Azure CLI session may not have the required scope. Try running `az login` first, or fall back to the manual method below.
+
+<details>
+<summary>Manual token acquisition (fallback)</summary>
+
 1. Navigate to ['Microsoft Entra Privileged Identity Management > Activate > Groups'](https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/ActivationMenuBlade/~/aadgroup) or ['Microsoft Entra Privileged Identity Management > Activate > Microsoft Entra roles'](https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/ActivationMenuBlade/~/aadmigratedroles)
 2. Open *DevTools* (`CTRL+Shift+I`), and locate a request to `https://api.azrbac.mspim.azure.com/api/v2/privilegedAccess/aadGroups/roleAssignments` or `https://api.azrbac.mspim.azure.com/api/v2/privilegedAccess/aadroles/roleAssignments`
     - If no such request can be seen, press the "Refresh" button above the table to issue a new request
-    - In *DevTools*, the "File" attribute should start with "roleAssignments"
-3. In *DevTools*, under the "Headers" tab for the given request, copy the value of the `Authorization` header, which should start with "Bearer eyJ0[...]"
-4. Remove the prefix "Bearer" from the value, resulting in "eyJ0[...]"
-5. Set an environment variable or config file value according to the description in [Configuration options](#configuration-options), e.g.
-  ```
-  PIM_TOKEN=eyJ0[...]
-  ```
-6. You may now, and for the duration of the token's lifetime, list and activate 'Entra groups' and 'Entra roles' using this tool
+3. In *DevTools*, under the "Headers" tab, copy the value of the `Authorization` header (starting with "Bearer eyJ0[...]")
+4. Remove the "Bearer " prefix and export the token:
+   ```bash
+   export PIM_TOKEN=eyJ0[...]
+   ```
+</details>
 
 ### Troubleshooting
 

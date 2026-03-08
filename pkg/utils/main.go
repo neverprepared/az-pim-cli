@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/netr0m/az-pim-cli/pkg/common"
@@ -27,10 +28,18 @@ func PrintEligibleResources(resourceAssignments *pim.ResourceAssignmentResponse)
 		eligibleResources[resourceName] = append(eligibleResources[resourceName], roleName)
 	}
 
-	for sub, rol := range eligibleResources {
+	scopes := make([]string, 0, len(eligibleResources))
+	for sub := range eligibleResources {
+		scopes = append(scopes, sub)
+	}
+	sort.Strings(scopes)
+
+	for _, sub := range scopes {
+		rol := eligibleResources[sub]
+		sort.Strings(rol)
 		fmt.Printf("== %s ==\n", sub)
-		for role := range rol {
-			fmt.Printf("\t - %s\n", rol[role])
+		for _, role := range rol {
+			fmt.Printf("\t - %s\n", role)
 		}
 	}
 }
@@ -48,10 +57,18 @@ func PrintEligibleGovernanceRoles(governanceRoleAssignments *pim.GovernanceRoleA
 		eligibleGovernanceRoles[governanceRoleName] = append(eligibleGovernanceRoles[governanceRoleName], roleName)
 	}
 
-	for govRole, rol := range eligibleGovernanceRoles {
+	scopes := make([]string, 0, len(eligibleGovernanceRoles))
+	for govRole := range eligibleGovernanceRoles {
+		scopes = append(scopes, govRole)
+	}
+	sort.Strings(scopes)
+
+	for _, govRole := range scopes {
+		rol := eligibleGovernanceRoles[govRole]
+		sort.Strings(rol)
 		fmt.Printf("== %s ==\n", govRole)
-		for role := range rol {
-			fmt.Printf("\t - %s\n", rol[role])
+		for _, role := range rol {
+			fmt.Printf("\t - %s\n", role)
 		}
 	}
 }
@@ -105,7 +122,14 @@ func PrintJSON(v any) {
 }
 
 func PrintActiveResources(activeAssignments *pim.ActiveResourceAssignmentResponse) {
-	for _, a := range activeAssignments.Value {
+	sorted := make([]pim.ActiveResourceAssignment, len(activeAssignments.Value))
+	copy(sorted, activeAssignments.Value)
+	sort.Slice(sorted, func(i, j int) bool {
+		si := sorted[i].Properties.ExpandedProperties.Scope.DisplayName
+		sj := sorted[j].Properties.ExpandedProperties.Scope.DisplayName
+		return si < sj
+	})
+	for _, a := range sorted {
 		scope := a.Properties.ExpandedProperties.Scope.DisplayName
 		role := a.Properties.ExpandedProperties.RoleDefinition.DisplayName
 		end := a.Properties.EndDateTime
@@ -114,7 +138,14 @@ func PrintActiveResources(activeAssignments *pim.ActiveResourceAssignmentRespons
 }
 
 func PrintActiveGovernanceRoles(assignments *pim.GovernanceRoleAssignmentResponse) {
-	for _, a := range assignments.Value {
+	sorted := make([]pim.GovernanceRoleAssignment, len(assignments.Value))
+	copy(sorted, assignments.Value)
+	sort.Slice(sorted, func(i, j int) bool {
+		si := sorted[i].RoleDefinition.Resource.DisplayName
+		sj := sorted[j].RoleDefinition.Resource.DisplayName
+		return si < sj
+	})
+	for _, a := range sorted {
 		scope := a.RoleDefinition.Resource.DisplayName
 		role := a.RoleDefinition.DisplayName
 		end := a.EndDateTime
