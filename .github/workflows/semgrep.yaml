@@ -25,7 +25,7 @@ jobs:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     if: (github.actor != 'dependabot[bot]')
     container:
-      image: semgrep/semgrep
+      image: semgrep/semgrep:1.154.0@sha256:7dfd648242bcbfa1d0cbb58e624c7cb799e31419e627f1fc7b1d7537d7d139de
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
