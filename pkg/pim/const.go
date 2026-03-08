@@ -30,6 +30,12 @@ const DEFAULT_REASON string = "config"
 // Default duration for role activation
 const DEFAULT_DURATION_MINUTES int = 480
 
+// Default timeout (seconds) when waiting for activation to complete
+const DEFAULT_WAIT_TIMEOUT_SECONDS int = 300
+
+// Poll interval (seconds) when waiting for activation to complete
+const WAIT_POLL_INTERVAL_SECONDS int = 5
+
 // API version for the "role eligibility schedule instances" (i.e. eligible azure resource role assignments)
 const AZ_PIM_API_VERSION string = "2020-10-01"
 

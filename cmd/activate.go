@@ -4,9 +4,8 @@ Copyright © 2023 netr0m <netr0m@pm.me>
 package cmd
 
 import (
-	"os"
-
 	"log/slog"
+	"os"
 
 	"github.com/netr0m/az-pim-cli/pkg/pim"
 	"github.com/netr0m/az-pim-cli/pkg/utils"
@@ -25,6 +24,8 @@ var ticketNumber string
 var dryRun bool
 var validateOnly bool
 var activateAll bool
+var waitForActivation bool
+var waitTimeout int
 
 var activateCmd = &cobra.Command{
 	Use:     "activate",
@@ -70,6 +71,11 @@ var activateResourceCmd = &cobra.Command{
 					"scope", ra.Properties.ExpandedProperties.Scope.DisplayName,
 					"status", requestResponse.Properties.Status,
 				)
+				if waitForActivation && pim.IsResourceAssignmentRequestPending(requestResponse) {
+					if !pim.WaitForResourceAssignment(scope, requestResponse.Name, token, waitTimeout, AzureClientInstance) {
+						os.Exit(1)
+					}
+				}
 			}
 			return
 		}
@@ -108,6 +114,11 @@ var activateResourceCmd = &cobra.Command{
 			"scope", resourceAssignment.Properties.ExpandedProperties.Scope.DisplayName,
 			"status", requestResponse.Properties.Status,
 		)
+		if waitForActivation && pim.IsResourceAssignmentRequestPending(requestResponse) {
+			if !pim.WaitForResourceAssignment(scope, requestResponse.Name, token, waitTimeout, AzureClientInstance) {
+				os.Exit(1)
+			}
+		}
 	},
 }
 
@@ -118,8 +129,45 @@ func activateGovernanceRole(roleType string) {
 	}
 	subjectId := pim.GetUserInfo(pimGovernanceRoleToken).ObjectId
 	eligibleAssignments := pim.GetEligibleGovernanceRoleAssignments(roleType, subjectId, pimGovernanceRoleToken, AzureClientInstance)
+
+	if activateAll {
+		if dryRun {
+			slog.Warn("Skipping activation due to '--dry-run'", "count", len(eligibleAssignments.Value))
+			os.Exit(0)
+		}
+		for _, assignment := range eligibleAssignments.Value {
+			a := assignment
+			rt, assignmentRequest := pim.CreateGovernanceRoleAssignmentRequest(subjectId, roleType, &a, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
+			slog.Info(
+				"Requesting activation",
+				"role", a.RoleDefinition.DisplayName,
+				"scope", a.RoleDefinition.Resource.DisplayName,
+				"duration", duration,
+				"cloud", azureEnv,
+			)
+			requestResponse := pim.RequestGovernanceRoleAssignment(rt, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
+			slog.Info(
+				"Request completed",
+				"role", a.RoleDefinition.DisplayName,
+				"scope", a.RoleDefinition.Resource.DisplayName,
+				"status", requestResponse.AssignmentState,
+			)
+			if waitForActivation && pim.IsGovernanceRoleAssignmentRequestPending(requestResponse) {
+				if !pim.WaitForGovernanceRoleAssignment(rt, requestResponse.Id, pimGovernanceRoleToken, waitTimeout, AzureClientInstance) {
+					os.Exit(1)
+				}
+			}
+		}
+		return
+	}
+
+	if name == "" && prefix == "" {
+		slog.Error("must specify --name, --prefix, or --all")
+		os.Exit(1)
+	}
+
 	roleAssignment := utils.GetGovernanceRoleAssignment(name, prefix, roleName, eligibleAssignments)
-	roleType, assignmentRequest := pim.CreateGovernanceRoleAssignmentRequest(subjectId, roleType, roleAssignment, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
+	rt, assignmentRequest := pim.CreateGovernanceRoleAssignmentRequest(subjectId, roleType, roleAssignment, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
 
 	slog.Info(
 		"Requesting activation",
@@ -139,20 +187,24 @@ func activateGovernanceRole(roleType string) {
 	}
 	if validateOnly {
 		slog.Warn("Running validation only")
-		validationSuccessful := pim.ValidateGovernanceRoleAssignmentRequest(roleType, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
+		validationSuccessful := pim.ValidateGovernanceRoleAssignmentRequest(rt, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
 		if validationSuccessful {
 			os.Exit(0)
 		}
 		os.Exit(1)
 	}
-	requestResponse := pim.RequestGovernanceRoleAssignment(roleType, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
+	requestResponse := pim.RequestGovernanceRoleAssignment(rt, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
 	slog.Info(
 		"Request completed",
 		"role", roleAssignment.RoleDefinition.DisplayName,
 		"scope", roleAssignment.RoleDefinition.Resource.DisplayName,
 		"status", requestResponse.AssignmentState,
 	)
-
+	if waitForActivation && pim.IsGovernanceRoleAssignmentRequestPending(requestResponse) {
+		if !pim.WaitForGovernanceRoleAssignment(rt, requestResponse.Id, pimGovernanceRoleToken, waitTimeout, AzureClientInstance) {
+			os.Exit(1)
+		}
+	}
 }
 
 var activateGroupCmd = &cobra.Command{
@@ -191,7 +243,11 @@ func init() {
 	activateCmd.PersistentFlags().StringVarP(&ticketNumber, "ticket-number", "T", "", "Ticket number for the activation")
 	activateCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Display the resource that would be activated, without requesting the activation")
 	activateCmd.PersistentFlags().BoolVarP(&validateOnly, "validate-only", "v", false, "Send the request to the validation endpoint of Azure PIM, without requesting the activation")
+	activateCmd.PersistentFlags().BoolVar(&waitForActivation, "wait", false, "Wait for the activation to complete before returning")
+	activateCmd.PersistentFlags().IntVar(&waitTimeout, "timeout", pim.DEFAULT_WAIT_TIMEOUT_SECONDS, "Timeout in seconds when waiting for activation (used with --wait)")
 	activateResourceCmd.Flags().BoolVar(&activateAll, "all", false, "Activate all eligible resource assignments")
+	activateGroupCmd.Flags().BoolVar(&activateAll, "all", false, "Activate all eligible group assignments")
+	activateEntraRoleCmd.Flags().BoolVar(&activateAll, "all", false, "Activate all eligible Entra role assignments")
 
 	activateGroupCmd.PersistentFlags().StringVarP(&pimGovernanceRoleToken, "token", "t", "", "An access token for the PIM 'Entra Roles' and 'Groups' API (required). Consult the README for more information.")
 	activateGroupCmd.MarkPersistentFlagRequired("token") //nolint:errcheck
@@ -201,7 +257,9 @@ func init() {
 
 	activateResourceCmd.MarkFlagsMutuallyExclusive("all", "name")
 	activateResourceCmd.MarkFlagsMutuallyExclusive("all", "prefix")
+	activateGroupCmd.MarkFlagsMutuallyExclusive("all", "name")
+	activateGroupCmd.MarkFlagsMutuallyExclusive("all", "prefix")
+	activateEntraRoleCmd.MarkFlagsMutuallyExclusive("all", "name")
+	activateEntraRoleCmd.MarkFlagsMutuallyExclusive("all", "prefix")
 	activateCmd.MarkFlagsMutuallyExclusive("name", "prefix")
-	activateGroupCmd.MarkFlagsOneRequired("name", "prefix")
-	activateEntraRoleCmd.MarkFlagsOneRequired("name", "prefix")
 }

@@ -200,6 +200,16 @@ func (m *mockClient) GetActiveGovernanceRoleAssignments(roleType string, subject
 	return args.Get(0).(*GovernanceRoleAssignmentResponse)
 }
 
+func (m *mockClient) GetResourceAssignmentRequest(scope string, name string, token string) *ResourceAssignmentRequestResponse {
+	args := m.Called(scope, name, token)
+	return args.Get(0).(*ResourceAssignmentRequestResponse)
+}
+
+func (m *mockClient) GetGovernanceRoleAssignmentRequest(roleType string, id string, token string) *GovernanceRoleAssignmentRequestResponse {
+	args := m.Called(roleType, id, token)
+	return args.Get(0).(*GovernanceRoleAssignmentRequestResponse)
+}
+
 func (m *mockClient) RequestGovernanceRoleAssignment(roleType string, governanceRoleAssignmentRequest *GovernanceRoleAssignmentRequest, token string) *GovernanceRoleAssignmentRequestResponse {
 	args := m.Called(roleType, governanceRoleAssignmentRequest, token)
 	return args.Get(0).(*GovernanceRoleAssignmentRequestResponse)

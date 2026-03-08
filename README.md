@@ -389,6 +389,24 @@ You can then use this token with any `group` or `role` subcommand via `--token` 
    ```
 </details>
 
+### Shell completion
+
+`az-pim-cli` can generate shell completion scripts for bash, zsh, fish, and PowerShell.
+
+```bash
+# zsh — add to ~/.zshrc
+echo 'source <(az-pim-cli completion zsh)' >> ~/.zshrc
+
+# bash — add to ~/.bashrc
+echo 'source <(az-pim-cli completion bash)' >> ~/.bashrc
+
+# fish
+az-pim-cli completion fish | source
+
+# PowerShell — add to $PROFILE
+az-pim-cli completion powershell | Out-String | Invoke-Expression
+```
+
 ### Troubleshooting
 
 To ease the process of troubleshooting, you can add the flag `--debug` to enable debug logging.

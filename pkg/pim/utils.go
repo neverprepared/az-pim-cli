@@ -284,6 +284,44 @@ func CreateGovernanceRoleDeactivationRequest(subjectId string, activeAssignment 
 	}
 }
 
+func WaitForResourceAssignment(scope string, requestName string, token string, timeout int, c Client) bool {
+	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
+	for time.Now().Before(deadline) {
+		time.Sleep(time.Duration(WAIT_POLL_INTERVAL_SECONDS) * time.Second)
+		response := GetResourceAssignmentRequest(scope, requestName, token, c)
+		if IsResourceAssignmentRequestOK(response) {
+			slog.Info("Role assignment activated successfully", "status", response.Properties.Status)
+			return true
+		}
+		if IsResourceAssignmentRequestFailed(response) {
+			slog.Error("Role assignment activation failed", "status", response.Properties.Status)
+			return false
+		}
+		slog.Info("Waiting for activation...", "status", response.Properties.Status)
+	}
+	slog.Error("Timed out waiting for role activation", "timeout", timeout)
+	return false
+}
+
+func WaitForGovernanceRoleAssignment(roleType string, requestId string, token string, timeout int, c Client) bool {
+	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
+	for time.Now().Before(deadline) {
+		time.Sleep(time.Duration(WAIT_POLL_INTERVAL_SECONDS) * time.Second)
+		response := GetGovernanceRoleAssignmentRequest(roleType, requestId, token, c)
+		if IsGovernanceRoleAssignmentRequestOK(response) {
+			slog.Info("Role assignment activated successfully", "status", response.Status.Status, "subStatus", response.Status.SubStatus)
+			return true
+		}
+		if IsGovernanceRoleAssignmentRequestFailed(response) {
+			slog.Error("Role assignment activation failed", "status", response.Status.Status, "subStatus", response.Status.SubStatus)
+			return false
+		}
+		slog.Info("Waiting for activation...", "status", response.Status.Status, "subStatus", response.Status.SubStatus)
+	}
+	slog.Error("Timed out waiting for role activation", "timeout", timeout)
+	return false
+}
+
 func (resourceAssignment *ResourceAssignment) Debug() string {
 	var debugLines []string
 
