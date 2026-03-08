@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var name string
+var names []string
 var prefix string
 var roleName string
 var duration int
@@ -34,6 +34,30 @@ var activateCmd = &cobra.Command{
 	Run:     func(cmd *cobra.Command, args []string) {},
 }
 
+// activateResource activates a single resource assignment, optionally waiting for completion.
+func activateResource(subjectId string, ra *pim.ResourceAssignment, token string) {
+	scope, assignmentRequest := pim.CreateResourceAssignmentRequest(subjectId, ra, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
+	slog.Info(
+		"Requesting activation",
+		"role", ra.Properties.ExpandedProperties.RoleDefinition.DisplayName,
+		"scope", ra.Properties.ExpandedProperties.Scope.DisplayName,
+		"duration", duration,
+		"cloud", azureEnv,
+	)
+	requestResponse := pim.RequestResourceAssignment(scope, assignmentRequest, token, AzureClientInstance)
+	slog.Info(
+		"Request completed",
+		"role", ra.Properties.ExpandedProperties.RoleDefinition.DisplayName,
+		"scope", ra.Properties.ExpandedProperties.Scope.DisplayName,
+		"status", requestResponse.Properties.Status,
+	)
+	if waitForActivation && pim.IsResourceAssignmentRequestPending(requestResponse) {
+		if !pim.WaitForResourceAssignment(scope, requestResponse.Name, token, waitTimeout, AzureClientInstance) {
+			os.Exit(1)
+		}
+	}
+}
+
 var activateResourceCmd = &cobra.Command{
 	Use:     "resource",
 	Aliases: []string{"r", "res", "resource", "resources", "sub", "subs", "subscriptions"},
@@ -42,7 +66,7 @@ var activateResourceCmd = &cobra.Command{
 		token := pim.GetAccessToken(AzureClientInstance.ARMBaseURL, AzureClientInstance)
 		subjectId := pim.GetUserInfo(token).ObjectId
 
-		if !activateAll && name == "" && prefix == "" {
+		if !activateAll && len(names) == 0 && prefix == "" {
 			slog.Error("must specify --name, --prefix, or --all")
 			os.Exit(1)
 		}
@@ -56,14 +80,40 @@ var activateResourceCmd = &cobra.Command{
 			}
 			for _, resourceAssignment := range eligibleResourceAssignments.Value {
 				ra := resourceAssignment
-				scope, assignmentRequest := pim.CreateResourceAssignmentRequest(subjectId, &ra, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
+				activateResource(subjectId, &ra, token)
+			}
+			return
+		}
+
+		if dryRun {
+			slog.Warn("Skipping activation due to '--dry-run'")
+			os.Exit(0)
+		}
+
+		if len(names) > 0 {
+			// Activate each named resource in sequence.
+			for _, n := range names {
+				ra := utils.GetResourceAssignment(n, "", roleName, eligibleResourceAssignments)
+				scope, assignmentRequest := pim.CreateResourceAssignmentRequest(subjectId, ra, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
 				slog.Info(
 					"Requesting activation",
 					"role", ra.Properties.ExpandedProperties.RoleDefinition.DisplayName,
 					"scope", ra.Properties.ExpandedProperties.Scope.DisplayName,
+					"reason", reason,
+					"ticketNumber", ticketNumber,
+					"ticketSystem", ticketSystem,
 					"duration", duration,
+					"startDateTime", assignmentRequest.Properties.ScheduleInfo.StartDateTime,
 					"cloud", azureEnv,
 				)
+				if validateOnly {
+					slog.Warn("Running validation only")
+					validationSuccessful := pim.ValidateResourceAssignmentRequest(scope, assignmentRequest, token, AzureClientInstance)
+					if !validationSuccessful {
+						os.Exit(1)
+					}
+					continue
+				}
 				requestResponse := pim.RequestResourceAssignment(scope, assignmentRequest, token, AzureClientInstance)
 				slog.Info(
 					"Request completed",
@@ -80,9 +130,9 @@ var activateResourceCmd = &cobra.Command{
 			return
 		}
 
-		resourceAssignment := utils.GetResourceAssignment(name, prefix, roleName, eligibleResourceAssignments)
+		// Prefix-based single activation (existing behaviour).
+		resourceAssignment := utils.GetResourceAssignment("", prefix, roleName, eligibleResourceAssignments)
 		scope, assignmentRequest := pim.CreateResourceAssignmentRequest(subjectId, resourceAssignment, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
-
 		slog.Info(
 			"Requesting activation",
 			"role", resourceAssignment.Properties.ExpandedProperties.RoleDefinition.DisplayName,
@@ -94,11 +144,6 @@ var activateResourceCmd = &cobra.Command{
 			"startDateTime", assignmentRequest.Properties.ScheduleInfo.StartDateTime,
 			"cloud", azureEnv,
 		)
-
-		if dryRun {
-			slog.Warn("Skipping activation due to '--dry-run'")
-			os.Exit(0)
-		}
 		if validateOnly {
 			slog.Warn("Running validation only")
 			validationSuccessful := pim.ValidateResourceAssignmentRequest(scope, assignmentRequest, token, AzureClientInstance)
@@ -161,48 +206,60 @@ func activateGovernanceRole(roleType string) {
 		return
 	}
 
-	if name == "" && prefix == "" {
+	if len(names) == 0 && prefix == "" {
 		slog.Error("must specify --name, --prefix, or --all")
 		os.Exit(1)
 	}
-
-	roleAssignment := utils.GetGovernanceRoleAssignment(name, prefix, roleName, eligibleAssignments)
-	rt, assignmentRequest := pim.CreateGovernanceRoleAssignmentRequest(subjectId, roleType, roleAssignment, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
-
-	slog.Info(
-		"Requesting activation",
-		"role", roleAssignment.RoleDefinition.DisplayName,
-		"scope", roleAssignment.RoleDefinition.Resource.DisplayName,
-		"reason", reason,
-		"ticketNumber", ticketNumber,
-		"ticketSystem", ticketSystem,
-		"duration", duration,
-		"startDateTime", assignmentRequest.Schedule.StartDateTime,
-		"cloud", azureEnv,
-	)
 
 	if dryRun {
 		slog.Warn("Skipping activation due to '--dry-run'")
 		os.Exit(0)
 	}
-	if validateOnly {
-		slog.Warn("Running validation only")
-		validationSuccessful := pim.ValidateGovernanceRoleAssignmentRequest(rt, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
-		if validationSuccessful {
-			os.Exit(0)
+
+	// Build list of (name, "") pairs for named targets, or ("", prefix) for prefix.
+	type target struct{ name, pfx string }
+	var targets []target
+	if len(names) > 0 {
+		for _, n := range names {
+			targets = append(targets, target{n, ""})
 		}
-		os.Exit(1)
+	} else {
+		targets = []target{{"", prefix}}
 	}
-	requestResponse := pim.RequestGovernanceRoleAssignment(rt, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
-	slog.Info(
-		"Request completed",
-		"role", roleAssignment.RoleDefinition.DisplayName,
-		"scope", roleAssignment.RoleDefinition.Resource.DisplayName,
-		"status", requestResponse.AssignmentState,
-	)
-	if waitForActivation && pim.IsGovernanceRoleAssignmentRequestPending(requestResponse) {
-		if !pim.WaitForGovernanceRoleAssignment(rt, requestResponse.Id, pimGovernanceRoleToken, waitTimeout, AzureClientInstance) {
-			os.Exit(1)
+
+	for _, t := range targets {
+		roleAssignment := utils.GetGovernanceRoleAssignment(t.name, t.pfx, roleName, eligibleAssignments)
+		rt, assignmentRequest := pim.CreateGovernanceRoleAssignmentRequest(subjectId, roleType, roleAssignment, duration, startDate, startTime, reason, ticketSystem, ticketNumber)
+		slog.Info(
+			"Requesting activation",
+			"role", roleAssignment.RoleDefinition.DisplayName,
+			"scope", roleAssignment.RoleDefinition.Resource.DisplayName,
+			"reason", reason,
+			"ticketNumber", ticketNumber,
+			"ticketSystem", ticketSystem,
+			"duration", duration,
+			"startDateTime", assignmentRequest.Schedule.StartDateTime,
+			"cloud", azureEnv,
+		)
+		if validateOnly {
+			slog.Warn("Running validation only")
+			validationSuccessful := pim.ValidateGovernanceRoleAssignmentRequest(rt, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
+			if !validationSuccessful {
+				os.Exit(1)
+			}
+			continue
+		}
+		requestResponse := pim.RequestGovernanceRoleAssignment(rt, assignmentRequest, pimGovernanceRoleToken, AzureClientInstance)
+		slog.Info(
+			"Request completed",
+			"role", roleAssignment.RoleDefinition.DisplayName,
+			"scope", roleAssignment.RoleDefinition.Resource.DisplayName,
+			"status", requestResponse.AssignmentState,
+		)
+		if waitForActivation && pim.IsGovernanceRoleAssignmentRequestPending(requestResponse) {
+			if !pim.WaitForGovernanceRoleAssignment(rt, requestResponse.Id, pimGovernanceRoleToken, waitTimeout, AzureClientInstance) {
+				os.Exit(1)
+			}
 		}
 	}
 }
@@ -232,7 +289,7 @@ func init() {
 	activateCmd.AddCommand(activateEntraRoleCmd)
 
 	// Flags
-	activateCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "The name of the resource to activate")
+	activateCmd.PersistentFlags().StringArrayVarP(&names, "name", "n", nil, "The name of the resource to activate (repeatable: --name a --name b)")
 	activateCmd.PersistentFlags().StringVarP(&prefix, "prefix", "p", "", "The name prefix of the resource to activate (e.g. 'S399'). Alternative to 'name'.")
 	activateCmd.PersistentFlags().StringVarP(&roleName, "role", "r", "", "Specify the role to activate, if multiple roles are found for a resource (e.g. 'Owner' and 'Contributor')")
 	activateCmd.PersistentFlags().IntVarP(&duration, "duration", "d", pim.DEFAULT_DURATION_MINUTES, "Duration in minutes that the role should be activated for")

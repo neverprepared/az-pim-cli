@@ -26,29 +26,40 @@ var deactivateResourceCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		token := pim.GetAccessToken(AzureClientInstance.ARMBaseURL, AzureClientInstance)
 		subjectId := pim.GetUserInfo(token).ObjectId
-
 		activeAssignments := pim.GetActiveResourceAssignments(token, AzureClientInstance)
-		activeAssignment := utils.GetActiveResourceAssignment(name, prefix, roleName, activeAssignments)
-		scope, deactivationRequest := pim.CreateResourceDeactivationRequest(subjectId, activeAssignment)
 
-		slog.Info(
-			"Requesting deactivation",
-			"role", activeAssignment.Properties.ExpandedProperties.RoleDefinition.DisplayName,
-			"scope", activeAssignment.Properties.ExpandedProperties.Scope.DisplayName,
-			"cloud", azureEnv,
-		)
+		type target struct{ name, pfx string }
+		var targets []target
+		if len(names) > 0 {
+			for _, n := range names {
+				targets = append(targets, target{n, ""})
+			}
+		} else {
+			targets = []target{{"", prefix}}
+		}
 
 		if dryRun {
 			slog.Warn("Skipping deactivation due to '--dry-run'")
 			os.Exit(0)
 		}
-		requestResponse := pim.RequestResourceAssignment(scope, deactivationRequest, token, AzureClientInstance)
-		slog.Info(
-			"Deactivation completed",
-			"role", activeAssignment.Properties.ExpandedProperties.RoleDefinition.DisplayName,
-			"scope", activeAssignment.Properties.ExpandedProperties.Scope.DisplayName,
-			"status", requestResponse.Properties.Status,
-		)
+
+		for _, t := range targets {
+			activeAssignment := utils.GetActiveResourceAssignment(t.name, t.pfx, roleName, activeAssignments)
+			scope, deactivationRequest := pim.CreateResourceDeactivationRequest(subjectId, activeAssignment)
+			slog.Info(
+				"Requesting deactivation",
+				"role", activeAssignment.Properties.ExpandedProperties.RoleDefinition.DisplayName,
+				"scope", activeAssignment.Properties.ExpandedProperties.Scope.DisplayName,
+				"cloud", azureEnv,
+			)
+			requestResponse := pim.RequestResourceAssignment(scope, deactivationRequest, token, AzureClientInstance)
+			slog.Info(
+				"Deactivation completed",
+				"role", activeAssignment.Properties.ExpandedProperties.RoleDefinition.DisplayName,
+				"scope", activeAssignment.Properties.ExpandedProperties.Scope.DisplayName,
+				"status", requestResponse.Properties.Status,
+			)
+		}
 	},
 }
 
@@ -59,27 +70,39 @@ func deactivateGovernanceRole(roleType string) {
 	}
 	subjectId := pim.GetUserInfo(pimGovernanceRoleToken).ObjectId
 	activeAssignments := pim.GetActiveGovernanceRoleAssignments(roleType, subjectId, pimGovernanceRoleToken, AzureClientInstance)
-	activeAssignment := utils.GetGovernanceRoleAssignment(name, prefix, roleName, activeAssignments)
-	deactivationRequest := pim.CreateGovernanceRoleDeactivationRequest(subjectId, activeAssignment)
 
-	slog.Info(
-		"Requesting deactivation",
-		"role", activeAssignment.RoleDefinition.DisplayName,
-		"scope", activeAssignment.RoleDefinition.Resource.DisplayName,
-		"cloud", azureEnv,
-	)
+	type target struct{ name, pfx string }
+	var targets []target
+	if len(names) > 0 {
+		for _, n := range names {
+			targets = append(targets, target{n, ""})
+		}
+	} else {
+		targets = []target{{"", prefix}}
+	}
 
 	if dryRun {
 		slog.Warn("Skipping deactivation due to '--dry-run'")
 		os.Exit(0)
 	}
-	requestResponse := pim.RequestGovernanceRoleAssignment(roleType, deactivationRequest, pimGovernanceRoleToken, AzureClientInstance)
-	slog.Info(
-		"Deactivation completed",
-		"role", activeAssignment.RoleDefinition.DisplayName,
-		"scope", activeAssignment.RoleDefinition.Resource.DisplayName,
-		"status", requestResponse.AssignmentState,
-	)
+
+	for _, t := range targets {
+		activeAssignment := utils.GetGovernanceRoleAssignment(t.name, t.pfx, roleName, activeAssignments)
+		deactivationRequest := pim.CreateGovernanceRoleDeactivationRequest(subjectId, activeAssignment)
+		slog.Info(
+			"Requesting deactivation",
+			"role", activeAssignment.RoleDefinition.DisplayName,
+			"scope", activeAssignment.RoleDefinition.Resource.DisplayName,
+			"cloud", azureEnv,
+		)
+		requestResponse := pim.RequestGovernanceRoleAssignment(roleType, deactivationRequest, pimGovernanceRoleToken, AzureClientInstance)
+		slog.Info(
+			"Deactivation completed",
+			"role", activeAssignment.RoleDefinition.DisplayName,
+			"scope", activeAssignment.RoleDefinition.Resource.DisplayName,
+			"status", requestResponse.AssignmentState,
+		)
+	}
 }
 
 var deactivateGroupCmd = &cobra.Command{
@@ -106,7 +129,7 @@ func init() {
 	deactivateCmd.AddCommand(deactivateGroupCmd)
 	deactivateCmd.AddCommand(deactivateEntraRoleCmd)
 
-	deactivateCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "The name of the resource to deactivate")
+	deactivateCmd.PersistentFlags().StringArrayVarP(&names, "name", "n", nil, "The name of the resource to deactivate (repeatable: --name a --name b)")
 	deactivateCmd.PersistentFlags().StringVarP(&prefix, "prefix", "p", "", "The name prefix of the resource to deactivate (e.g. 'S399'). Alternative to 'name'.")
 	deactivateCmd.PersistentFlags().StringVarP(&roleName, "role", "r", "", "Specify the role to deactivate, if multiple roles are found for a resource")
 	deactivateCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Display the resource that would be deactivated, without requesting the deactivation")

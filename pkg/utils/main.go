@@ -10,10 +10,39 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/netr0m/az-pim-cli/pkg/common"
 	"github.com/netr0m/az-pim-cli/pkg/pim"
 )
+
+// printHeader prints a bold, tab-aligned header line that matches the column
+// widths tabwriter will produce for the data rows that follow.
+// colWidths is the minimum width for each column except the last.
+func printHeader(colWidths []int, headers ...string) {
+	var parts []string
+	for i, h := range headers {
+		if i < len(colWidths) {
+			// Pad to match tabwriter's minimum column width + 3 spaces padding
+			padded := fmt.Sprintf("%-*s", colWidths[i]+3, h)
+			parts = append(parts, common.Bold(padded))
+		} else {
+			parts = append(parts, common.Bold(h))
+		}
+	}
+	fmt.Println(strings.Join(parts, ""))
+}
+
+// maxLen returns the length of the longest string in the slice.
+func maxLen(strs []string) int {
+	m := 0
+	for _, s := range strs {
+		if len(s) > m {
+			m = len(s)
+		}
+	}
+	return m
+}
 
 func PrintEligibleResources(resourceAssignments *pim.ResourceAssignmentResponse) {
 	var eligibleResources = make(map[string][]string)
@@ -34,14 +63,16 @@ func PrintEligibleResources(resourceAssignments *pim.ResourceAssignmentResponse)
 	}
 	sort.Strings(scopes)
 
+	printHeader([]int{maxLen(scopes)}, "SCOPE", "ROLE")
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
 	for _, sub := range scopes {
 		rol := eligibleResources[sub]
 		sort.Strings(rol)
-		fmt.Printf("== %s ==\n", sub)
 		for _, role := range rol {
-			fmt.Printf("\t - %s\n", role)
+			fmt.Fprintf(w, "%s\t%s\n", sub, role)
 		}
 	}
+	w.Flush()
 }
 
 func PrintEligibleGovernanceRoles(governanceRoleAssignments *pim.GovernanceRoleAssignmentResponse) {
@@ -63,14 +94,16 @@ func PrintEligibleGovernanceRoles(governanceRoleAssignments *pim.GovernanceRoleA
 	}
 	sort.Strings(scopes)
 
+	printHeader([]int{maxLen(scopes)}, "SCOPE", "ROLE")
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
 	for _, govRole := range scopes {
 		rol := eligibleGovernanceRoles[govRole]
 		sort.Strings(rol)
-		fmt.Printf("== %s ==\n", govRole)
 		for _, role := range rol {
-			fmt.Printf("\t - %s\n", role)
+			fmt.Fprintf(w, "%s\t%s\n", govRole, role)
 		}
 	}
+	w.Flush()
 }
 
 func GetResourceAssignment(name string, prefix string, role string, eligibleResourceAssignments *pim.ResourceAssignmentResponse) *pim.ResourceAssignment {
@@ -125,32 +158,48 @@ func PrintActiveResources(activeAssignments *pim.ActiveResourceAssignmentRespons
 	sorted := make([]pim.ActiveResourceAssignment, len(activeAssignments.Value))
 	copy(sorted, activeAssignments.Value)
 	sort.Slice(sorted, func(i, j int) bool {
-		si := sorted[i].Properties.ExpandedProperties.Scope.DisplayName
-		sj := sorted[j].Properties.ExpandedProperties.Scope.DisplayName
-		return si < sj
+		return sorted[i].Properties.ExpandedProperties.Scope.DisplayName <
+			sorted[j].Properties.ExpandedProperties.Scope.DisplayName
 	})
-	for _, a := range sorted {
-		scope := a.Properties.ExpandedProperties.Scope.DisplayName
-		role := a.Properties.ExpandedProperties.RoleDefinition.DisplayName
-		end := a.Properties.EndDateTime
-		fmt.Printf("== %s ==\n\t - %s (expires: %s)\n", scope, role, end)
+
+	scopes := make([]string, len(sorted))
+	for i, a := range sorted {
+		scopes[i] = a.Properties.ExpandedProperties.Scope.DisplayName
 	}
+	printHeader([]int{maxLen(scopes), 30}, "SCOPE", "ROLE", "EXPIRES")
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	for _, a := range sorted {
+		fmt.Fprintf(w, "%s\t%s\t%s\n",
+			a.Properties.ExpandedProperties.Scope.DisplayName,
+			a.Properties.ExpandedProperties.RoleDefinition.DisplayName,
+			a.Properties.EndDateTime,
+		)
+	}
+	w.Flush()
 }
 
 func PrintActiveGovernanceRoles(assignments *pim.GovernanceRoleAssignmentResponse) {
 	sorted := make([]pim.GovernanceRoleAssignment, len(assignments.Value))
 	copy(sorted, assignments.Value)
 	sort.Slice(sorted, func(i, j int) bool {
-		si := sorted[i].RoleDefinition.Resource.DisplayName
-		sj := sorted[j].RoleDefinition.Resource.DisplayName
-		return si < sj
+		return sorted[i].RoleDefinition.Resource.DisplayName <
+			sorted[j].RoleDefinition.Resource.DisplayName
 	})
-	for _, a := range sorted {
-		scope := a.RoleDefinition.Resource.DisplayName
-		role := a.RoleDefinition.DisplayName
-		end := a.EndDateTime
-		fmt.Printf("== %s ==\n\t - %s (expires: %s)\n", scope, role, end)
+
+	scopes := make([]string, len(sorted))
+	for i, a := range sorted {
+		scopes[i] = a.RoleDefinition.Resource.DisplayName
 	}
+	printHeader([]int{maxLen(scopes), 30}, "SCOPE", "ROLE", "EXPIRES")
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	for _, a := range sorted {
+		fmt.Fprintf(w, "%s\t%s\t%s\n",
+			a.RoleDefinition.Resource.DisplayName,
+			a.RoleDefinition.DisplayName,
+			a.EndDateTime,
+		)
+	}
+	w.Flush()
 }
 
 func GetActiveResourceAssignment(name string, prefix string, role string, activeAssignments *pim.ActiveResourceAssignmentResponse) *pim.ActiveResourceAssignment {

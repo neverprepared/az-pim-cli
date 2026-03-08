@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -104,72 +105,100 @@ func handleRequestErr(_error *common.Error, err error, req *http.Request) {
 	os.Exit(1)
 }
 
+const maxRetries = 2 // up to 3 total attempts (0, 1, 2)
+
 func Request(request *PIMRequest, responseModel any) any {
-	// Prepare request body
-	var req *http.Request
-	var err error
 	_error := common.Error{
 		Operation: "Request",
 	}
 
+	// Serialize payload once so each retry gets a fresh io.Reader.
+	var payloadBytes []byte
 	if request.Payload != nil {
-		payload := new(bytes.Buffer)
-		json.NewEncoder(payload).Encode(request.Payload) //nolint:errcheck
-		req, err = http.NewRequest(request.Method, request.Url, payload)
+		buf := new(bytes.Buffer)
+		json.NewEncoder(buf).Encode(request.Payload) //nolint:errcheck
+		payloadBytes = buf.Bytes()
+	}
+
+	var (
+		req  *http.Request
+		res  *http.Response
+		body []byte
+		err  error
+	)
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if attempt > 0 {
+			backoff := time.Duration(1<<(attempt-1)) * time.Second // 1s, 2s
+			slog.Warn("Retrying request", "attempt", attempt, "backoff", backoff)
+			time.Sleep(backoff)
+		}
+
+		var bodyReader io.Reader
+		if payloadBytes != nil {
+			bodyReader = bytes.NewReader(payloadBytes)
+		}
+		req, err = http.NewRequest(request.Method, request.Url, bodyReader)
 		if err != nil {
 			handleRequestErr(&_error, err, req)
 		}
-	} else {
-		req, err = http.NewRequest(request.Method, request.Url, nil)
-		if err != nil {
-			handleRequestErr(&_error, err, req)
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", request.Token))
+
+		query := req.URL.Query()
+		for k, v := range request.Params {
+			query.Add(k, v)
 		}
-	}
+		req.URL.RawQuery = query.Encode()
 
-	// Add headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", request.Token))
+		res, err = http.DefaultClient.Do(req)
+		if err != nil {
+			if attempt < maxRetries {
+				slog.Warn("Request failed, will retry", "attempt", attempt+1, "error", err)
+				continue
+			}
+			_error.Message = err.Error()
+			_error.Err = err
+			_error.Request = req
+			slog.Error(_error.Error())
+			slog.Debug(_error.Debug())
+			os.Exit(1)
+		}
 
-	// Prepare request parameters
-	query := req.URL.Query()
-	for k, v := range request.Params {
-		query.Add(k, v)
-	}
-	req.URL.RawQuery = query.Encode()
+		body, err = io.ReadAll(res.Body)
+		res.Body.Close()
+		if err != nil {
+			if attempt < maxRetries {
+				slog.Warn("Failed to read response body, will retry", "attempt", attempt+1, "error", err)
+				continue
+			}
+			_error.Message = err.Error()
+			_error.Status = res.Status
+			_error.Err = err
+			_error.Request = req
+			_error.Response = res
+			slog.Error(_error.Error())
+			slog.Debug(_error.Debug())
+			os.Exit(1)
+		}
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		defer res.Body.Close()
-		_error.Message = err.Error()
-		_error.Status = res.Status
-		_error.Err = err
-		_error.Request = req
-		_error.Response = res
-		slog.Error(_error.Error())
-		slog.Debug(_error.Debug())
-		os.Exit(1)
-	}
-	defer res.Body.Close()
+		// Retry on 429 (rate limit) and 5xx (server errors).
+		if res.StatusCode == 429 || res.StatusCode >= 500 {
+			if attempt < maxRetries {
+				slog.Warn("Request returned retryable status, will retry", "attempt", attempt+1, "status", res.Status)
+				continue
+			}
+		}
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		_error.Message = err.Error()
-		_error.Status = res.Status
-		_error.Err = err
-		_error.Request = req
-		_error.Response = res
-		slog.Error(_error.Error())
-		slog.Debug(_error.Debug())
-		os.Exit(1)
+		break
 	}
 
 	// Handle upstream error responses
 	if res.StatusCode >= 400 {
-		message := string(body)
-		_error.Message = message
+		_error.Message = string(body)
 		_error.Status = res.Status
-		_error.Err = err
 		_error.Request = req
 		_error.Response = res
 		slog.Error(_error.Error())
