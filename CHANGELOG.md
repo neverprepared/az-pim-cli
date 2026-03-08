@@ -3,6 +3,21 @@
 ## [1.11.0](https://github.com/neverprepared/az-pim-cli/compare/v1.10.0...v1.11.0) (2026-03-08)
 
 
+### Bug Fixes
+
+* formula install pre-built binary instead of go build from source ([8e3a674](https://github.com/neverprepared/az-pim-cli/commit/8e3a674bbd94adfbc70d7302efbf5497ac3475c5))
+* revert formula to v1.10.0 after spurious v1.11.0 release ([83506ab](https://github.com/neverprepared/az-pim-cli/commit/83506ab8c21b2e01affc16bb28774131271e843a))
+
+
+### Chores
+
+* **main:** release 1.11.0 ([84c115e](https://github.com/neverprepared/az-pim-cli/commit/84c115e232b2b5dd850fef929c32b33601980122))
+* **main:** release 1.11.0 ([3b69881](https://github.com/neverprepared/az-pim-cli/commit/3b698818270dfdf610d664515c9247d4d1f9c0b6))
+* reset release-please manifest to 1.10.0 after tag re-creation loop ([823c106](https://github.com/neverprepared/az-pim-cli/commit/823c1062050aed369726c755649a90ef844f97a2))
+
+## [1.11.0](https://github.com/neverprepared/az-pim-cli/compare/v1.10.0...v1.11.0) (2026-03-08)
+
+
 ### Continuous Integration
 
 * allow mindmorass actor in release workflow ([0e4fc98](https://github.com/neverprepared/az-pim-cli/commit/0e4fc980aa3ed7746ea2c5077db34246b4359bb5))
