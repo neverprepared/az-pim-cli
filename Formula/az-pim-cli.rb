@@ -5,23 +5,23 @@
 class AzPimCli < Formula
   desc "CLI utility for managing Azure PIM role assignments"
   homepage "https://github.com/mindmorass/az-pim-cli"
-  version "1.11.1"
+  version "1.13.0"
   license "MIT"
 
   depends_on "go" => :build
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/mindmorass/az-pim-cli/releases/download/v1.11.1/az-pim-cli-1.11.1-macos-x86_64.tar.gz"
-      sha256 "ca387aa5564335f9ca8d108d88c6db2db83966a4b5aa373638051b3563da8aea"
+      url "https://github.com/mindmorass/az-pim-cli/releases/download/v1.13.0/az-pim-cli-1.13.0-macos-x86_64.tar.gz"
+      sha256 "3ec886758d619f7a4a8ad40ccbc99fa4012003b5a7f6434728362a090e05fe57"
 
       define_method(:install) do
         system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/mindmorass/az-pim-cli/releases/download/v1.11.1/az-pim-cli-1.11.1-macos-arm64.tar.gz"
-      sha256 "785ed167b646871c242967858545d376cf2f00755121f1f3236751b1d8b19067"
+      url "https://github.com/mindmorass/az-pim-cli/releases/download/v1.13.0/az-pim-cli-1.13.0-macos-arm64.tar.gz"
+      sha256 "99036749d906d7026024b140a0702abb5e368a42225cd9cdf049937593f72d64"
 
       define_method(:install) do
         system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
@@ -31,15 +31,15 @@ class AzPimCli < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/mindmorass/az-pim-cli/releases/download/v1.11.1/az-pim-cli-1.11.1-linux-x86_64.tar.gz"
-      sha256 "5642018641ad25a39e7c8b0dd1cf2f71d598465fc52cd102c44b22e92043ce33"
+      url "https://github.com/mindmorass/az-pim-cli/releases/download/v1.13.0/az-pim-cli-1.13.0-linux-x86_64.tar.gz"
+      sha256 "9447992a92a7ca8bcd5a3bf63c769f2a361e23328346c3b3753468053f120b7a"
       define_method(:install) do
         system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/mindmorass/az-pim-cli/releases/download/v1.11.1/az-pim-cli-1.11.1-linux-arm64.tar.gz"
-      sha256 "368f498bfb33dffc84265a67adac959516204bc1d5b3d633626fde605da1fb30"
+      url "https://github.com/mindmorass/az-pim-cli/releases/download/v1.13.0/az-pim-cli-1.13.0-linux-arm64.tar.gz"
+      sha256 "67e6c5a3f6693eef7111e9277aad6ef9a626247a514918c025dbf9bfef255cb5"
       define_method(:install) do
         system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
       end
