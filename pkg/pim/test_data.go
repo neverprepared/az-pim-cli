@@ -152,6 +152,64 @@ var governanceRoleAssignmentSubject *GovernanceRoleAssignmentSubject = &Governan
 	Type:          "user",
 }
 
+const (
+	TEST_DUMMY_ACTIVE_ASSIGN_1_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+	TEST_DUMMY_ACTIVE_ASSIGN_2_ID = "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+)
+
+var ActiveResourceAssignmentsDummyData *ActiveResourceAssignmentResponse = &ActiveResourceAssignmentResponse{
+	Value: []ActiveResourceAssignment{
+		{
+			Id:   TEST_DUMMY_ACTIVE_ASSIGN_1_ID,
+			Name: fmt.Sprintf("%s %s active", TEST_DUMMY_SUBSCRIPTION_1_NAME, TEST_DUMMY_ROLE_1_NAME),
+			Type: "Subscription",
+			Properties: &ActiveResourceProperties{
+				EndDateTime:                     "2024-12-31T23:59:59+00:00",
+				LinkedRoleEligibilityScheduleId: TEST_DUMMY_SUB_1_ROLE_1_ID,
+				ExpandedProperties: &ResourceExpandedProperties{
+					Scope: &ResourceExpandedProperty{
+						Id:          "/" + TEST_DUMMY_SUBSCRIPTION_1_ID,
+						DisplayName: TEST_DUMMY_SUBSCRIPTION_1_NAME,
+					},
+					RoleDefinition: &ResourceExpandedProperty{
+						Id:          TEST_DUMMY_SUB_1_ROLE_1_ID,
+						DisplayName: TEST_DUMMY_ROLE_1_NAME,
+					},
+					Principal: &ResourceExpandedProperty{
+						Id:          TEST_DUMMY_PRINCIPAL_ID,
+						DisplayName: TEST_DUMMY_PRINCIPAL_NAME,
+						Email:       TEST_DUMMY_PRINCIPAL_EMAIL,
+					},
+				},
+			},
+		},
+		{
+			Id:   TEST_DUMMY_ACTIVE_ASSIGN_2_ID,
+			Name: fmt.Sprintf("%s %s active", TEST_DUMMY_SUBSCRIPTION_2_NAME, TEST_DUMMY_ROLE_1_NAME),
+			Type: "Subscription",
+			Properties: &ActiveResourceProperties{
+				EndDateTime:                     "2025-01-15T12:00:00+00:00",
+				LinkedRoleEligibilityScheduleId: TEST_DUMMY_SUB_2_ROLE_1_ID,
+				ExpandedProperties: &ResourceExpandedProperties{
+					Scope: &ResourceExpandedProperty{
+						Id:          "/" + TEST_DUMMY_SUBSCRIPTION_2_ID,
+						DisplayName: TEST_DUMMY_SUBSCRIPTION_2_NAME,
+					},
+					RoleDefinition: &ResourceExpandedProperty{
+						Id:          TEST_DUMMY_SUB_2_ROLE_1_ID,
+						DisplayName: TEST_DUMMY_ROLE_1_NAME,
+					},
+					Principal: &ResourceExpandedProperty{
+						Id:          TEST_DUMMY_PRINCIPAL_ID,
+						DisplayName: TEST_DUMMY_PRINCIPAL_NAME,
+						Email:       TEST_DUMMY_PRINCIPAL_EMAIL,
+					},
+				},
+			},
+		},
+	},
+}
+
 var EligibleGovernanceRoleAssignmentsDummyData *GovernanceRoleAssignmentResponse = &GovernanceRoleAssignmentResponse{
 	Value: []GovernanceRoleAssignment{
 		{

@@ -195,9 +195,36 @@ func (m *mockClient) GetActiveResourceAssignments(token string) *ActiveResourceA
 	return args.Get(0).(*ActiveResourceAssignmentResponse)
 }
 
+func TestGetActiveResourceAssignments(t *testing.T) {
+	m := newMockClient()
+
+	m.On("GetActiveResourceAssignments", TEST_DUMMY_JWT).Return(ActiveResourceAssignmentsDummyData)
+
+	activeAssignments := GetActiveResourceAssignments(TEST_DUMMY_JWT, m)
+
+	if len(activeAssignments.Value) != 2 {
+		t.Errorf("expected 2 active resource assignments, got %v", len(activeAssignments.Value))
+	}
+	assert.Equal(t, TEST_DUMMY_SUBSCRIPTION_1_NAME, activeAssignments.Value[0].Properties.ExpandedProperties.Scope.DisplayName)
+	assert.Equal(t, TEST_DUMMY_ROLE_1_NAME, activeAssignments.Value[0].Properties.ExpandedProperties.RoleDefinition.DisplayName)
+	m.AssertCalled(t, "GetActiveResourceAssignments", TEST_DUMMY_JWT)
+}
+
 func (m *mockClient) GetActiveGovernanceRoleAssignments(roleType string, subjectId string, token string) *GovernanceRoleAssignmentResponse {
 	args := m.Called(roleType, subjectId, token)
 	return args.Get(0).(*GovernanceRoleAssignmentResponse)
+}
+
+func TestGetActiveGovernanceRoleAssignments(t *testing.T) {
+	m := newMockClient()
+
+	m.On("GetActiveGovernanceRoleAssignments", ROLE_TYPE_AAD_GROUPS, TEST_DUMMY_PRINCIPAL_ID, TEST_DUMMY_JWT).Return(EligibleGovernanceRoleAssignmentsDummyData)
+
+	activeAssignments := GetActiveGovernanceRoleAssignments(ROLE_TYPE_AAD_GROUPS, TEST_DUMMY_PRINCIPAL_ID, TEST_DUMMY_JWT, m)
+
+	assert.Equal(t, 3, len(activeAssignments.Value))
+	assert.Equal(t, TEST_DUMMY_GROUP_1_NAME, activeAssignments.Value[0].RoleDefinition.Resource.DisplayName)
+	m.AssertCalled(t, "GetActiveGovernanceRoleAssignments", ROLE_TYPE_AAD_GROUPS, TEST_DUMMY_PRINCIPAL_ID, TEST_DUMMY_JWT)
 }
 
 func (m *mockClient) GetResourceAssignmentRequest(scope string, name string, token string) *ResourceAssignmentRequestResponse {
@@ -205,9 +232,54 @@ func (m *mockClient) GetResourceAssignmentRequest(scope string, name string, tok
 	return args.Get(0).(*ResourceAssignmentRequestResponse)
 }
 
+func TestGetResourceAssignmentRequest(t *testing.T) {
+	m := newMockClient()
+
+	scope := TEST_DUMMY_SUBSCRIPTION_1_ID
+	requestName := ActiveResourceAssignmentsDummyData.Value[0].Name
+	expected := &ResourceAssignmentRequestResponse{
+		Id:   ActiveResourceAssignmentsDummyData.Value[0].Id,
+		Name: requestName,
+		Properties: &ResourceAssignmentValidationProperties{
+			Status:      StatusProvisioned,
+			PrincipalId: TEST_DUMMY_PRINCIPAL_ID,
+		},
+	}
+
+	m.On("GetResourceAssignmentRequest", scope, requestName, TEST_DUMMY_JWT).Return(expected)
+
+	result := GetResourceAssignmentRequest(scope, requestName, TEST_DUMMY_JWT, m)
+
+	assert.Equal(t, StatusProvisioned, result.Properties.Status)
+	assert.Equal(t, TEST_DUMMY_PRINCIPAL_ID, result.Properties.PrincipalId)
+	m.AssertCalled(t, "GetResourceAssignmentRequest", scope, requestName, TEST_DUMMY_JWT)
+}
+
 func (m *mockClient) GetGovernanceRoleAssignmentRequest(roleType string, id string, token string) *GovernanceRoleAssignmentRequestResponse {
 	args := m.Called(roleType, id, token)
 	return args.Get(0).(*GovernanceRoleAssignmentRequestResponse)
+}
+
+func TestGetGovernanceRoleAssignmentRequest(t *testing.T) {
+	m := newMockClient()
+
+	requestId := EligibleGovernanceRoleAssignmentsDummyData.Value[0].Id
+	expected := &GovernanceRoleAssignmentRequestResponse{
+		Id:        requestId,
+		SubjectId: TEST_DUMMY_PRINCIPAL_ID,
+		Status: &GovernanceRoleAssignmentRequestStatus{
+			Status:    StatusProvisioned,
+			SubStatus: StatusProvisioned,
+		},
+	}
+
+	m.On("GetGovernanceRoleAssignmentRequest", ROLE_TYPE_AAD_GROUPS, requestId, TEST_DUMMY_JWT).Return(expected)
+
+	result := GetGovernanceRoleAssignmentRequest(ROLE_TYPE_AAD_GROUPS, requestId, TEST_DUMMY_JWT, m)
+
+	assert.Equal(t, StatusProvisioned, result.Status.Status)
+	assert.Equal(t, TEST_DUMMY_PRINCIPAL_ID, result.SubjectId)
+	m.AssertCalled(t, "GetGovernanceRoleAssignmentRequest", ROLE_TYPE_AAD_GROUPS, requestId, TEST_DUMMY_JWT)
 }
 
 func (m *mockClient) RequestGovernanceRoleAssignment(roleType string, governanceRoleAssignmentRequest *GovernanceRoleAssignmentRequest, token string) *GovernanceRoleAssignmentRequestResponse {

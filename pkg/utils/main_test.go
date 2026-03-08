@@ -31,6 +31,33 @@ func TestGetResourceAssignment(t *testing.T) {
 	assert.EqualValues(t, subprefix, &pim.EligibleResourceAssignmentsDummyData.Value[3], "resulting resource assignment does not match expected assignment")
 }
 
+func TestPrintActiveResources(t *testing.T) {
+	// smoke test — just ensure it doesn't panic
+	PrintActiveResources(pim.ActiveResourceAssignmentsDummyData)
+}
+
+func TestPrintActiveGovernanceRoles(t *testing.T) {
+	PrintActiveGovernanceRoles(pim.EligibleGovernanceRoleAssignmentsDummyData)
+}
+
+func TestGetActiveResourceAssignment(t *testing.T) {
+	// match by name
+	got := GetActiveResourceAssignment(pim.TEST_DUMMY_SUBSCRIPTION_1_NAME, "", "", pim.ActiveResourceAssignmentsDummyData)
+	assert.EqualValues(t, &pim.ActiveResourceAssignmentsDummyData.Value[0], got)
+
+	// match by prefix
+	got = GetActiveResourceAssignment("", "subscription", "", pim.ActiveResourceAssignmentsDummyData)
+	assert.EqualValues(t, &pim.ActiveResourceAssignmentsDummyData.Value[0], got)
+
+	// match by name + role
+	got = GetActiveResourceAssignment(pim.TEST_DUMMY_SUBSCRIPTION_2_NAME, "", pim.TEST_DUMMY_ROLE_1_NAME, pim.ActiveResourceAssignmentsDummyData)
+	assert.EqualValues(t, &pim.ActiveResourceAssignmentsDummyData.Value[1], got)
+
+	// name is case-insensitive
+	got = GetActiveResourceAssignment("SUBSCRIPTION 1", "", "", pim.ActiveResourceAssignmentsDummyData)
+	assert.Equal(t, pim.TEST_DUMMY_SUBSCRIPTION_1_NAME, got.Properties.ExpandedProperties.Scope.DisplayName)
+}
+
 func TestGetGovernanceRoleAssignmentAADGroup(t *testing.T) {
 	var grp1role1 *pim.GovernanceRoleAssignment = GetGovernanceRoleAssignment(pim.TEST_DUMMY_GROUP_1_NAME, "", pim.TEST_DUMMY_ROLE_1_NAME, pim.EligibleGovernanceRoleAssignmentsDummyData)
 	assert.EqualValues(t, grp1role1, &pim.EligibleGovernanceRoleAssignmentsDummyData.Value[0], "resulting governance role assignment does not match expected assignment")
