@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/mindmorass/az-pim-cli/compare/v1.12.0...v1.13.0) (2026-03-08)
+
+
+### Continuous Integration
+
+* run GoReleaser after release-please creates a release ([9ff7e6e](https://github.com/mindmorass/az-pim-cli/commit/9ff7e6e08bf9e89c8187769441603f879459536d))
+
 ## [1.12.0](https://github.com/mindmorass/az-pim-cli/compare/v1.11.0...v1.12.0) (2026-03-07)
 
 
