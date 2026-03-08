@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-// Dummy JWT
+// Dummy JWT (minimal fake token for testing — contains no real credentials)
 const TEST_DUMMY_JWT string = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvaWQiOiI2NTk1ZTE4My1lMzMzLTQ2NDYtYTFkMS1iY2QwNmRiM2YyMTIiLCJ1bmlxdWVfbmFtZSI6ImF6LXBpbS1jbGktdGVzdEBuZXZlcnByZXBhcmVkLmdpdGh1Yi5jb20ifQ.dummysignature"
 
 // Dummy principal/subject ID
@@ -18,7 +18,7 @@ const TEST_DUMMY_PRINCIPAL_ID string = "6595e183-e333-4646-a1d1-bcd06db3f212"
 const TEST_DUMMY_PRINCIPAL_NAME string = "az-pim-cli test"
 
 // Dummy principal/subject name
-const TEST_DUMMY_PRINCIPAL_EMAIL string = "az-pim-cli-test@netr0m.github.com"
+const TEST_DUMMY_PRINCIPAL_EMAIL string = "az-pim-cli-test@neverprepared.github.com"
 
 // Dummy role names
 const (
