@@ -25,6 +25,8 @@ type Client interface {
 	GetAccessToken(scope string) string
 	GetEligibleResourceAssignments(token string) *ResourceAssignmentResponse
 	GetEligibleGovernanceRoleAssignments(roleType string, subjectId string, token string) *GovernanceRoleAssignmentResponse
+	GetActiveResourceAssignments(token string) *ActiveResourceAssignmentResponse
+	GetActiveGovernanceRoleAssignments(roleType string, subjectId string, token string) *GovernanceRoleAssignmentResponse
 	ValidateResourceAssignmentRequest(scope string, resourceAssignmentRequest *ResourceAssignmentRequestRequest, token string) bool
 	ValidateGovernanceRoleAssignmentRequest(roleType string, roleAssignmentRequest *GovernanceRoleAssignmentRequest, token string) bool
 	RequestResourceAssignment(scope string, resourceAssignmentRequest *ResourceAssignmentRequestRequest, token string) *ResourceAssignmentRequestResponse
@@ -334,4 +336,52 @@ func (c AzureClient) RequestGovernanceRoleAssignment(roleType string, governance
 
 func RequestGovernanceRoleAssignment(roleType string, governanceRoleAssignmentRequest *GovernanceRoleAssignmentRequest, token string, c Client) *GovernanceRoleAssignmentRequestResponse {
 	return c.RequestGovernanceRoleAssignment(roleType, governanceRoleAssignmentRequest, token)
+}
+
+func (c AzureClient) GetActiveResourceAssignments(token string) *ActiveResourceAssignmentResponse {
+	params := map[string]string{
+		"api-version": AZ_PIM_API_VERSION,
+		"$filter":     "asTarget()",
+	}
+	responseModel := &ActiveResourceAssignmentResponse{}
+	_ = Request(&PIMRequest{
+		Url:    fmt.Sprintf("%s/%s/roleAssignmentScheduleInstances", c.ARMBaseURL, ARM_BASE_PATH),
+		Token:  token,
+		Method: "GET",
+		Params: params,
+	}, responseModel)
+
+	return responseModel
+}
+
+func GetActiveResourceAssignments(token string, c Client) *ActiveResourceAssignmentResponse {
+	return c.GetActiveResourceAssignments(token)
+}
+
+func (c AzureClient) GetActiveGovernanceRoleAssignments(roleType string, subjectId string, token string) *GovernanceRoleAssignmentResponse {
+	if !IsGovernanceRoleType(roleType) {
+		_error := common.Error{
+			Operation: "GetActiveGovernanceRoleAssignments",
+			Message:   "Invalid role type specified.",
+		}
+		slog.Error(_error.Error())
+		os.Exit(1)
+	}
+	params := map[string]string{
+		"$expand": "linkedEligibleRoleAssignment,subject,scopedResource,roleDefinition($expand=resource)",
+		"$filter": fmt.Sprintf("(subject/id eq '%s') and (assignmentState eq 'Active')", subjectId),
+	}
+	responseModel := &GovernanceRoleAssignmentResponse{}
+	_ = Request(&PIMRequest{
+		Url:    fmt.Sprintf("%s/%s/%s/roleAssignments", AZ_RBAC_BASE_URL, AZ_RBAC_BASE_PATH, roleType),
+		Token:  token,
+		Method: "GET",
+		Params: params,
+	}, responseModel)
+
+	return responseModel
+}
+
+func GetActiveGovernanceRoleAssignments(roleType string, subjectId string, token string, c Client) *GovernanceRoleAssignmentResponse {
+	return c.GetActiveGovernanceRoleAssignments(roleType, subjectId, token)
 }

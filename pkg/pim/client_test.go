@@ -190,6 +190,16 @@ func TestRequestResourceAssignment(t *testing.T) {
 	assert.Equal(t, requestResponse.Properties.ScheduleInfo.Expiration.Duration, expectedDuration, "expected resource assignment request expiration duration to be %s, got %s", expectedDuration, requestResponse.Properties.Status)
 }
 
+func (m *mockClient) GetActiveResourceAssignments(token string) *ActiveResourceAssignmentResponse {
+	args := m.Called(token)
+	return args.Get(0).(*ActiveResourceAssignmentResponse)
+}
+
+func (m *mockClient) GetActiveGovernanceRoleAssignments(roleType string, subjectId string, token string) *GovernanceRoleAssignmentResponse {
+	args := m.Called(roleType, subjectId, token)
+	return args.Get(0).(*GovernanceRoleAssignmentResponse)
+}
+
 func (m *mockClient) RequestGovernanceRoleAssignment(roleType string, governanceRoleAssignmentRequest *GovernanceRoleAssignmentRequest, token string) *GovernanceRoleAssignmentRequestResponse {
 	args := m.Called(roleType, governanceRoleAssignmentRequest, token)
 	return args.Get(0).(*GovernanceRoleAssignmentRequestResponse)

@@ -256,6 +256,34 @@ func CreateGovernanceRoleAssignmentRequest(subjectId string, roleType string, go
 	return roleType, governanceRoleAssignmentRequest
 }
 
+func CreateResourceDeactivationRequest(subjectId string, activeAssignment *ActiveResourceAssignment) (string, *ResourceAssignmentRequestRequest) {
+	request := &ResourceAssignmentRequestRequest{
+		Properties: ResourceAssignmentRequestProperties{
+			PrincipalId:                     subjectId,
+			RoleDefinitionId:                activeAssignment.Properties.ExpandedProperties.RoleDefinition.Id,
+			RequestType:                     "SelfDeactivate",
+			LinkedRoleEligibilityScheduleId: activeAssignment.Properties.LinkedRoleEligibilityScheduleId,
+			IsValidationOnly:                false,
+			IsActivativation:                false,
+		},
+	}
+	scope := activeAssignment.Properties.ExpandedProperties.Scope.Id[1:]
+
+	return scope, request
+}
+
+func CreateGovernanceRoleDeactivationRequest(subjectId string, activeAssignment *GovernanceRoleAssignment) *GovernanceRoleAssignmentRequest {
+	return &GovernanceRoleAssignmentRequest{
+		RoleDefinitionId:               activeAssignment.RoleDefinitionId,
+		ResourceId:                     activeAssignment.ResourceId,
+		SubjectId:                      subjectId,
+		AssignmentState:                "Active",
+		Type:                           "UserRemove",
+		LinkedEligibleRoleAssignmentId: activeAssignment.Id,
+		ScopedResourceId:               "",
+	}
+}
+
 func (resourceAssignment *ResourceAssignment) Debug() string {
 	var debugLines []string
 

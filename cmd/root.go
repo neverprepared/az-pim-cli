@@ -17,10 +17,12 @@ import (
 
 var (
 	debugLogging           bool
+	outputJSON             bool
 	cfgFile                string
 	pimGovernanceRoleToken string
 	azureEnv               string
 	AzureClientInstance    pim.AzureClient
+	vpr                    *viper.Viper
 )
 
 var rootCmd = &cobra.Command{
@@ -54,13 +56,14 @@ func init() {
 
 	// Global flags
 	rootCmd.PersistentFlags().BoolVar(&debugLogging, "debug", false, "Enable debug logging")
+	rootCmd.PersistentFlags().BoolVarP(&outputJSON, "json", "j", false, "Emit output as JSON (logs are redirected to stderr)")
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.az-pim-cli.yaml)")
 	rootCmd.PersistentFlags().StringVar(&azureEnv, "cloud", "global", "Which Azure environment to use ('global', 'usgov', 'china')")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	vpr := viper.New()
+	vpr = viper.New()
 	if cfgFile != "" {
 		// Use config file from the flag.
 		vpr.SetConfigFile(cfgFile)
@@ -94,8 +97,13 @@ func initConfig() {
 	bindFlags(listEntraRoleCmd, vpr)
 	bindFlags(activateGroupCmd, vpr)
 	bindFlags(activateEntraRoleCmd, vpr)
+	bindFlags(deactivateCmd, vpr)
+	bindFlags(deactivateGroupCmd, vpr)
+	bindFlags(deactivateEntraRoleCmd, vpr)
+	bindFlags(listActiveGroupCmd, vpr)
+	bindFlags(listActiveEntraRoleCmd, vpr)
 
-	common.InitLogger(debugLogging)
+	common.InitLogger(debugLogging, outputJSON)
 }
 
 func bindFlags(cmd *cobra.Command, vpr *viper.Viper) {

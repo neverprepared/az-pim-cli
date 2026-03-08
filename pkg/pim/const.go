@@ -39,6 +39,9 @@ const (
 	ROLE_TYPE_ENTRA_ROLES = "aadroles"
 )
 
+// Scope for the Azure RBAC Governance Role API token (Entra Groups and Roles)
+const AZ_RBAC_TOKEN_SCOPE string = AZ_RBAC_BASE_URL + "/.default"
+
 // Base URLs for different Azure environments
 var ARM_BASE_URLS = map[string]string{
 	"global": ARM_GLOBAL_BASE_URL,

@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func InitLogger(debugLogging bool) {
+func InitLogger(debugLogging bool, jsonOutput bool) {
 	lvl := new(slog.LevelVar)
 	if debugLogging {
 		lvl.Set(slog.LevelDebug)
@@ -19,7 +19,13 @@ func InitLogger(debugLogging bool) {
 		lvl.Set(slog.LevelInfo)
 	}
 
-	_handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: lvl})
+	// When emitting JSON output, redirect logs to stderr so stdout stays clean for piping
+	out := os.Stdout
+	if jsonOutput {
+		out = os.Stderr
+	}
+
+	_handler := slog.NewTextHandler(out, &slog.HandlerOptions{Level: lvl})
 	logger := slog.New(_handler)
 
 	slog.SetDefault(logger)

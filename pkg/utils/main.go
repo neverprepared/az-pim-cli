@@ -4,6 +4,7 @@ Copyright © 2023 netr0m <netr0m@pm.me>
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -86,6 +87,72 @@ func GetResourceAssignment(name string, prefix string, role string, eligibleReso
 	var _error = common.Error{
 		Operation: "GetResourceAssignment",
 		Message:   "Unable to find a resource assignment matching the parameters",
+		Status:    "404",
+	}
+	slog.Error(_error.Error())
+	os.Exit(1)
+
+	return nil
+}
+
+func PrintJSON(v any) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(v); err != nil {
+		slog.Error("Failed to encode JSON output", "error", err)
+		os.Exit(1)
+	}
+}
+
+func PrintActiveResources(activeAssignments *pim.ActiveResourceAssignmentResponse) {
+	for _, a := range activeAssignments.Value {
+		scope := a.Properties.ExpandedProperties.Scope.DisplayName
+		role := a.Properties.ExpandedProperties.RoleDefinition.DisplayName
+		end := a.Properties.EndDateTime
+		fmt.Printf("== %s ==\n\t - %s (expires: %s)\n", scope, role, end)
+	}
+}
+
+func PrintActiveGovernanceRoles(assignments *pim.GovernanceRoleAssignmentResponse) {
+	for _, a := range assignments.Value {
+		scope := a.RoleDefinition.Resource.DisplayName
+		role := a.RoleDefinition.DisplayName
+		end := a.EndDateTime
+		fmt.Printf("== %s ==\n\t - %s (expires: %s)\n", scope, role, end)
+	}
+}
+
+func GetActiveResourceAssignment(name string, prefix string, role string, activeAssignments *pim.ActiveResourceAssignmentResponse) *pim.ActiveResourceAssignment {
+	name = strings.ToLower(name)
+	prefix = strings.ToLower(prefix)
+	role = strings.ToLower(role)
+	for _, a := range activeAssignments.Value {
+		var match *pim.ActiveResourceAssignment
+		resourceName := strings.ToLower(a.Properties.ExpandedProperties.Scope.DisplayName)
+
+		if len(prefix) != 0 {
+			if strings.HasPrefix(resourceName, prefix) {
+				match = &a
+			}
+		} else if len(name) != 0 {
+			if resourceName == name {
+				match = &a
+			}
+		}
+
+		if match != nil {
+			if role == "" {
+				return &a
+			}
+			if strings.ToLower(a.Properties.ExpandedProperties.RoleDefinition.DisplayName) == role {
+				return &a
+			}
+		}
+	}
+
+	var _error = common.Error{
+		Operation: "GetActiveResourceAssignment",
+		Message:   "Unable to find an active resource assignment matching the parameters",
 		Status:    "404",
 	}
 	slog.Error(_error.Error())

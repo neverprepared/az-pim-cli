@@ -24,7 +24,11 @@ var listResourceCmd = &cobra.Command{
 		token := pim.GetAccessToken(AzureClientInstance.ARMBaseURL, AzureClientInstance)
 
 		eligibleResourceAssignments := pim.GetEligibleResourceAssignments(token, AzureClientInstance)
-		utils.PrintEligibleResources(eligibleResourceAssignments)
+		if outputJSON {
+			utils.PrintJSON(eligibleResourceAssignments)
+		} else {
+			utils.PrintEligibleResources(eligibleResourceAssignments)
+		}
 	},
 }
 
@@ -35,7 +39,11 @@ var listGroupCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		subjectId := pim.GetUserInfo(pimGovernanceRoleToken).ObjectId
 		eligibleGroupAssignments := pim.GetEligibleGovernanceRoleAssignments(pim.ROLE_TYPE_AAD_GROUPS, subjectId, pimGovernanceRoleToken, AzureClientInstance)
-		utils.PrintEligibleGovernanceRoles(eligibleGroupAssignments)
+		if outputJSON {
+			utils.PrintJSON(eligibleGroupAssignments)
+		} else {
+			utils.PrintEligibleGovernanceRoles(eligibleGroupAssignments)
+		}
 	},
 }
 
@@ -46,7 +54,11 @@ var listEntraRoleCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		subjectId := pim.GetUserInfo(pimGovernanceRoleToken).ObjectId
 		eligibleEntraRoleAssignments := pim.GetEligibleGovernanceRoleAssignments(pim.ROLE_TYPE_ENTRA_ROLES, subjectId, pimGovernanceRoleToken, AzureClientInstance)
-		utils.PrintEligibleGovernanceRoles(eligibleEntraRoleAssignments)
+		if outputJSON {
+			utils.PrintJSON(eligibleEntraRoleAssignments)
+		} else {
+			utils.PrintEligibleGovernanceRoles(eligibleEntraRoleAssignments)
+		}
 	},
 }
 

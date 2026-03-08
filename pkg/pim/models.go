@@ -93,9 +93,37 @@ type GovernanceRoleAssignment struct {
 	RoleDefinitionId string                           `json:"roleDefinitionId"`
 	SubjectId        string                           `json:"subjectId"`
 	AssignmentState  string                           `json:"assignmentState"`
+	EndDateTime      string                           `json:"endDateTime,omitempty"`
 	Status           string                           `json:"status"`
 	Subject          *GovernanceRoleAssignmentSubject `json:"subject"`
 	RoleDefinition   *GovernanceRoleDefinition        `json:"roleDefinition"`
+}
+
+type ActiveResourceProperties struct {
+	RoleAssignmentScheduleId        string                      `json:"roleAssignmentScheduleId"`
+	LinkedRoleEligibilityScheduleId string                      `json:"linkedRoleEligibilityScheduleId"`
+	Scope                           string                      `json:"scope"`
+	RoleDefinitionId                string                      `json:"roleDefinitionId"`
+	PrincipalId                     string                      `json:"principalId"`
+	PrincipalType                   string                      `json:"principalType"`
+	Status                          string                      `json:"status"`
+	StartDateTime                   string                      `json:"startDateTime"`
+	EndDateTime                     string                      `json:"endDateTime"`
+	AssignmentType                  string                      `json:"assignmentType"`
+	MemberType                      string                      `json:"memberType"`
+	CreatedOn                       string                      `json:"createdOn"`
+	ExpandedProperties              *ResourceExpandedProperties `json:"expandedProperties"`
+}
+
+type ActiveResourceAssignment struct {
+	Properties *ActiveResourceProperties `json:"properties"`
+	Name       string                    `json:"name"`
+	Id         string                    `json:"id"`
+	Type       string                    `json:"type"`
+}
+
+type ActiveResourceAssignmentResponse struct {
+	Value []ActiveResourceAssignment `json:"value"`
 }
 
 type GovernanceRoleAssignmentResponse struct {
