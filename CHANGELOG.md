@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/neverprepared/az-pim-cli/compare/v1.10.0...v1.11.0) (2026-03-08)
+
+
+### Continuous Integration
+
+* allow mindmorass actor in release workflow ([0e4fc98](https://github.com/neverprepared/az-pim-cli/commit/0e4fc980aa3ed7746ea2c5077db34246b4359bb5))
+
 ## [1.10.0](https://github.com/neverprepared/az-pim-cli/compare/v1.9.0...v1.10.0) (2026-03-08)
 
 
