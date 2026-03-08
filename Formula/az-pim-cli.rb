@@ -8,23 +8,21 @@ class AzPimCli < Formula
   version "1.10.0"
   license "MIT"
 
-  depends_on "go" => :build
-
   on_macos do
     if Hardware::CPU.intel?
       url "https://github.com/neverprepared/az-pim-cli/releases/download/v1.10.0/az-pim-cli-1.10.0-macos-x86_64.tar.gz"
       sha256 "2ddf07cd9d52e6d15382d0b556c70a6b17fb18e8d3d258e9f4c7fb48fc35b8c1"
 
-      define_method(:install) do
-        system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
+      def install
+        bin.install "az-pim-cli"
       end
     end
     if Hardware::CPU.arm?
       url "https://github.com/neverprepared/az-pim-cli/releases/download/v1.10.0/az-pim-cli-1.10.0-macos-arm64.tar.gz"
       sha256 "f454a3e5dc09b38015ebb9114bb581c571400e816b9592bf466c1e39a67cdad4"
 
-      define_method(:install) do
-        system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
+      def install
+        bin.install "az-pim-cli"
       end
     end
   end
@@ -33,15 +31,17 @@ class AzPimCli < Formula
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
       url "https://github.com/neverprepared/az-pim-cli/releases/download/v1.10.0/az-pim-cli-1.10.0-linux-x86_64.tar.gz"
       sha256 "1425fb3af4c6fc34b1e840b671c9f277aa359e0c18baf0ad470aa0959f4279ff"
-      define_method(:install) do
-        system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
+
+      def install
+        bin.install "az-pim-cli"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
       url "https://github.com/neverprepared/az-pim-cli/releases/download/v1.10.0/az-pim-cli-1.10.0-linux-arm64.tar.gz"
       sha256 "39fa362f4696630411cc44307a389f79fb7e38e09def11bc36c43e22f9d2f3e3"
-      define_method(:install) do
-        system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
+
+      def install
+        bin.install "az-pim-cli"
       end
     end
   end

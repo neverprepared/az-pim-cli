@@ -100,10 +100,7 @@ brews:
     homepage: "https://github.com/neverprepared/az-pim-cli"
     description: "CLI utility for managing Azure PIM role assignments"
     license: "MIT"
-    dependencies:
-      - name: go
-        type: build
     install: |
-      system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version} -X main.tag=v#{version}"), "."
+      bin.install "az-pim-cli"
     test: |
       assert_match version.to_s, shell_output("#{bin}/az-pim-cli version")
