@@ -1,7 +1,7 @@
 # Azure PIM CLI
 *Azure Privileged Identity Management Command Line Interface*
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/netr0m/az-pim-cli.svg)](https://pkg.go.dev/github.com/netr0m/az-pim-cli) [![Go Report Card](https://goreportcard.com/badge/github.com/netr0m/az-pim-cli)](https://goreportcard.com/report/github.com/netr0m/az-pim-cli)
+[![Go Reference](https://pkg.go.dev/badge/github.com/neverprepared/az-pim-cli.svg)](https://pkg.go.dev/github.com/neverprepared/az-pim-cli) [![Go Report Card](https://goreportcard.com/badge/github.com/neverprepared/az-pim-cli)](https://goreportcard.com/report/github.com/neverprepared/az-pim-cli)
 
 `az-pim-cli` eases the process of listing and activating Azure PIM roles by allowing activation via the command line. Authentication is handled with the `azure.identity` library by utilizing the `AzureCLICredential` method.
 It currently supports ['azure resources'](#azure-resources), ['groups'](#groups), and ['entra roles'](#entra-roles)
@@ -27,13 +27,13 @@ Commands at a glance:
 ## Install
 ### Install with `go install`
 ```bash
-$ go install github.com/netr0m/az-pim-cli@latest
+$ go install github.com/neverprepared/az-pim-cli@latest
 ```
 
 ### Clone and build yourself
 ```bash
 # Clone the git repo
-$ git clone https://github.com/netr0m/az-pim-cli.git
+$ git clone https://github.com/neverprepared/az-pim-cli.git
 
 # Navigate into the repo directory and build
 $ cd az-pim-cli

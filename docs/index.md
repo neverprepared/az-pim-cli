@@ -5,7 +5,7 @@ CLI utility for managing Azure Privileged Identity Management (PIM) role assignm
 ## Install via Homebrew
 
 ```bash
-brew tap mindmorass/az-pim-cli https://github.com/mindmorass/az-pim-cli
+brew tap neverprepared/az-pim-cli https://github.com/neverprepared/az-pim-cli
 brew install az-pim-cli
 ```
 
@@ -95,6 +95,6 @@ export PIM_CLOUD=global
 
 ## Links
 
-- [Full README](https://github.com/mindmorass/az-pim-cli/blob/main/README.md)
-- [Upstream project](https://github.com/netr0m/az-pim-cli)
-- [Releases](https://github.com/mindmorass/az-pim-cli/releases)
+- [Full README](https://github.com/neverprepared/az-pim-cli/blob/main/README.md)
+- [Upstream project](https://github.com/neverprepared/az-pim-cli)
+- [Releases](https://github.com/neverprepared/az-pim-cli/releases)

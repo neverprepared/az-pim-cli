@@ -1,5 +1,5 @@
 /*
-Copyright © 2025 netr0m <netr0m@pm.me>
+Copyright © 2025 mindmorass <mindmorass@gmail.com>
 */
 package cmd
 
@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/mark3labs/mcp-go/server"
-	mcpserver "github.com/netr0m/az-pim-cli/pkg/mcp"
+	mcpserver "github.com/neverprepared/az-pim-cli/pkg/mcp"
 	"github.com/spf13/cobra"
 )
 

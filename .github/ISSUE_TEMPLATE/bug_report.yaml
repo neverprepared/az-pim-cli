@@ -7,7 +7,7 @@ body:
     attributes:
       label: Welcome
       options:
-        - label: Yes, I've searched similar [issues on GitHub](https://github.com/netr0m/az-pim-cli/issues) and didn't find any.
+        - label: Yes, I've searched similar [issues on GitHub](https://github.com/neverprepared/az-pim-cli/issues) and didn't find any.
           required: true
 
   - type: textarea

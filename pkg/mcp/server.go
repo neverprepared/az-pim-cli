@@ -1,5 +1,5 @@
 /*
-Copyright © 2025 netr0m <netr0m@pm.me>
+Copyright © 2025 mindmorass <mindmorass@gmail.com>
 */
 package mcp
 
@@ -10,8 +10,8 @@ import (
 
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/netr0m/az-pim-cli/pkg/pim"
-	"github.com/netr0m/az-pim-cli/pkg/utils"
+	"github.com/neverprepared/az-pim-cli/pkg/pim"
+	"github.com/neverprepared/az-pim-cli/pkg/utils"
 )
 
 func argsMap(req mcplib.CallToolRequest) map[string]any {

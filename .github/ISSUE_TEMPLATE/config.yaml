@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: 📖 README
-    url: https://github.com/netr0m/az-pim-cli/blob/main/README.md
+    url: https://github.com/neverprepared/az-pim-cli/blob/main/README.md
     about: Please take a look at the README.
   - name: ❓ Questions
-    url: https://github.com/netr0m/az-pim-cli/discussions
+    url: https://github.com/neverprepared/az-pim-cli/discussions
     about: If you have a question, or are looking for advice, please post on our Discussions forum!

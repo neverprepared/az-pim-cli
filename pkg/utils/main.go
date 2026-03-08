@@ -12,8 +12,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/netr0m/az-pim-cli/pkg/common"
-	"github.com/netr0m/az-pim-cli/pkg/pim"
+	"github.com/neverprepared/az-pim-cli/pkg/common"
+	"github.com/neverprepared/az-pim-cli/pkg/pim"
 )
 
 // printHeader prints a bold, tab-aligned header line that matches the column

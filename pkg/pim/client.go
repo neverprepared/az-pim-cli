@@ -18,7 +18,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/netr0m/az-pim-cli/pkg/common"
+	"github.com/neverprepared/az-pim-cli/pkg/common"
 )
 
 // Azure Client interface

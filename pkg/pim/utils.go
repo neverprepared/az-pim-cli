@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/netr0m/az-pim-cli/pkg/common"
+	"github.com/neverprepared/az-pim-cli/pkg/common"
 )
 
 func IsResourceAssignmentRequestFailed(requestResponse *ResourceAssignmentRequestResponse) bool {

@@ -4,8 +4,8 @@ Copyright © 2024 netr0m <netr0m@pm.me>
 package cmd
 
 import (
-	"github.com/netr0m/az-pim-cli/pkg/pim"
-	"github.com/netr0m/az-pim-cli/pkg/utils"
+	"github.com/neverprepared/az-pim-cli/pkg/pim"
+	"github.com/neverprepared/az-pim-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 

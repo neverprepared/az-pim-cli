@@ -82,7 +82,7 @@ changelog:
 
 release:
   github:
-    owner: mindmorass
+    owner: neverprepared
     name: az-pim-cli
 
 source:
@@ -92,12 +92,12 @@ source:
 brews:
   - name: az-pim-cli
     repository:
-      owner: mindmorass
+      owner: neverprepared
       name: az-pim-cli
       token: "{{ .Env.GITHUB_TOKEN }}"
     ids: [compressed]
     directory: Formula
-    homepage: "https://github.com/mindmorass/az-pim-cli"
+    homepage: "https://github.com/neverprepared/az-pim-cli"
     description: "CLI utility for managing Azure PIM role assignments"
     license: "MIT"
     dependencies:
