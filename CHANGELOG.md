@@ -1,5 +1,63 @@
 # Changelog
 
+## [1.8.0](https://github.com/neverprepared/az-pim-cli/compare/v1.7.0...v1.8.0) (2026-03-08)
+
+
+### Features
+
+* --wait/--timeout polling, --all for governance, shell completion docs ([ff0f45c](https://github.com/neverprepared/az-pim-cli/commit/ff0f45c93d36679d7f8170fe8492b78e5b30707d))
+* add list active, deactivate, --json output, and token commands ([d2a7d0e](https://github.com/neverprepared/az-pim-cli/commit/d2a7d0e3d8dfa7640ce2bfed20609f4f8e9b3dc0))
+* add MCP server ([af8d18d](https://github.com/neverprepared/az-pim-cli/commit/af8d18d1d64160fb6ffaff42604caa28073bc352))
+* add support for additional Azure environments (us gov, china) ([#111](https://github.com/neverprepared/az-pim-cli/issues/111)) ([07a83af](https://github.com/neverprepared/az-pim-cli/commit/07a83af56bcaf109045ca2dbc7442d3f1cc2c2d9))
+* bulk activate --all, sorted output, README improvements ([979640d](https://github.com/neverprepared/az-pim-cli/commit/979640d2895f22eb09fff9cba4ab8a58a0514644))
+* **goreleaser:** include binaries in release ([#101](https://github.com/neverprepared/az-pim-cli/issues/101)) ([aeabca2](https://github.com/neverprepared/az-pim-cli/commit/aeabca28b2777b36a291976f51724299172b30a9))
+* table output, ANSI color, HTTP retry, multiple --name targets ([0d3bd07](https://github.com/neverprepared/az-pim-cli/commit/0d3bd078ab029237552d18fb5e9f541a07583d25))
+
+
+### Bug Fixes
+
+* **build/goreleaser:** remove incorrect template key usage ([#103](https://github.com/neverprepared/az-pim-cli/issues/103)) ([a1427a3](https://github.com/neverprepared/az-pim-cli/commit/a1427a304866813939279be5c5ed480932be3d6b))
+
+
+### Chores
+
+* **deps:** upgrade dependencies ([#99](https://github.com/neverprepared/az-pim-cli/issues/99)) ([202b948](https://github.com/neverprepared/az-pim-cli/commit/202b9485e8003023e5bfa9c0b0f078b4b52660ae))
+* **main:** release 1.10.0 ([#108](https://github.com/neverprepared/az-pim-cli/issues/108)) ([a82127c](https://github.com/neverprepared/az-pim-cli/commit/a82127cd9435821a9c74845a5702ab346a96aca7))
+* **main:** release 1.11.0 ([#112](https://github.com/neverprepared/az-pim-cli/issues/112)) ([cdb9492](https://github.com/neverprepared/az-pim-cli/commit/cdb949255acfc2b3cf1a4e2a07c16087d71b5c74))
+* **main:** release 1.12.0 ([d2ccf9d](https://github.com/neverprepared/az-pim-cli/commit/d2ccf9de31abb7a873e57f3155be90c4fe71015c))
+* **main:** release 1.12.0 ([1dc54b6](https://github.com/neverprepared/az-pim-cli/commit/1dc54b6fa72ff01f9d4214391eada6ca0fa748fc))
+* **main:** release 1.13.0 ([34f3034](https://github.com/neverprepared/az-pim-cli/commit/34f303470c261c5e26dacc8212f2140508bd3fd0))
+* **main:** release 1.13.0 ([ab807b1](https://github.com/neverprepared/az-pim-cli/commit/ab807b17c9e3e37b5e4a2916873d10513a94cc60))
+* **main:** release 1.6.1 ([539d7d3](https://github.com/neverprepared/az-pim-cli/commit/539d7d3eee44f22446a2a36e3f1c901533ec37d0))
+* **main:** release 1.6.1 ([eefffb0](https://github.com/neverprepared/az-pim-cli/commit/eefffb073d66039594b12fd5135e21878e28d746))
+* **main:** release 1.7.0 ([86cf25d](https://github.com/neverprepared/az-pim-cli/commit/86cf25d484a820f15e845924c6359bb3fd9207ee))
+* **main:** release 1.7.0 ([1576a19](https://github.com/neverprepared/az-pim-cli/commit/1576a19389ba1fb6a48cd507bf7797d0e34cf3c1))
+* **main:** release 1.8.0 ([#100](https://github.com/neverprepared/az-pim-cli/issues/100)) ([a207941](https://github.com/neverprepared/az-pim-cli/commit/a2079415ced2e294dbb341c12bfa2f11f0b8df59))
+* **main:** release 1.9.0 ([#106](https://github.com/neverprepared/az-pim-cli/issues/106)) ([4d8a7b0](https://github.com/neverprepared/az-pim-cli/commit/4d8a7b0666dcec079d40e4b3d31e239d56deeb86))
+* migrate to neverprepared/az-pim-cli ([60df4cc](https://github.com/neverprepared/az-pim-cli/commit/60df4ccc38440f9d7881b258f357ee8856b8d4d6))
+* replace dummy JWT with minimal fake token ([ad5bf0a](https://github.com/neverprepared/az-pim-cli/commit/ad5bf0a068166b15b52bf05be3562f08e98b5703))
+* upgrade dependencies ([202b948](https://github.com/neverprepared/az-pim-cli/commit/202b9485e8003023e5bfa9c0b0f078b4b52660ae))
+
+
+### Tests
+
+* add coverage for new features ([070f5b8](https://github.com/neverprepared/az-pim-cli/commit/070f5b862e9ab0293ae5fb8b189248d4abeececa))
+
+
+### Build
+
+* fix broken goreleaser builds ([#105](https://github.com/neverprepared/az-pim-cli/issues/105)) ([506acde](https://github.com/neverprepared/az-pim-cli/commit/506acde2183d3a649e9d0d49d578f34e10bed112))
+* **goreleaser:** include macos-universal binary in release archives ([#107](https://github.com/neverprepared/az-pim-cli/issues/107)) ([fb45385](https://github.com/neverprepared/az-pim-cli/commit/fb453852f51c7840c051e603b216886715fa7476))
+
+
+### Continuous Integration
+
+* add build workflow for all target platforms ([f991bd1](https://github.com/neverprepared/az-pim-cli/commit/f991bd1476cfa983c6f85e7261af40a103605a9f))
+* disable Snyk jobs until SNYK_TOKEN is configured ([6ce411e](https://github.com/neverprepared/az-pim-cli/commit/6ce411e7a319236c99208f2db78154f2ba45480e))
+* pin semgrep container and snyk action to specific versions ([d659971](https://github.com/neverprepared/az-pim-cli/commit/d659971d888bde381a7430172522a9e6438de45b))
+* run GoReleaser after release-please creates a release ([f7cdfb6](https://github.com/neverprepared/az-pim-cli/commit/f7cdfb6a13a2e1fe102a3e671698d11e4c0f9ab8))
+* use GITHUB_TOKEN for release-please instead of PAT ([7bbc4a8](https://github.com/neverprepared/az-pim-cli/commit/7bbc4a8caef116cbe3a65a4d761ac58148a40963))
+
 ## [1.7.0](https://github.com/neverprepared/az-pim-cli/compare/v1.6.1...v1.7.0) (2026-03-08)
 
 
