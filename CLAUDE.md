@@ -67,8 +67,12 @@ pre-commit run --all-files   # lint: golangci-lint + whitespace/yaml hooks
 go run . <subcommand>   # run locally
 ```
 
-Lint config lives in `golangci.yaml`; hook versions in `.pre-commit-config.yaml`
-(golangci-lint v1.64.5). CI runs lint, build (5 GOOS/GOARCH combos), tests,
+Hook versions live in `.pre-commit-config.yaml` (golangci-lint v1.64.5). Note
+that the lint config file is named `golangci.yaml`, **not** `.golangci.yaml` —
+golangci-lint looks for the dot-prefixed name, so this config is likely not
+being applied (it enables `deadcode`/`gosimple`/`stylecheck`, which no longer
+exist in v1.64.5 and would otherwise fail the run). Treat linting as running
+with golangci-lint defaults. CI runs lint, build (5 GOOS/GOARCH combos), tests,
 conventional-commit checks and Semgrep — see `.github/workflows/`.
 
 ## CLI surface
